@@ -1,0 +1,2314 @@
+<?xml version="1.0"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>clouchdb
+</title>
+  <link rel="stylesheet" type="text/css" href="style.css"/>
+  <meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1"/>
+</head>
+
+<body>
+ <div class="header">
+   <h1>clouchdb</h1> A Common Lisp library for interacting with
+   CouchDb databases.
+ </div>
+
+<h2>Overview</h2> 
+
+<p>
+Clouchdb is a Common Lisp library for interacting
+with <a href="http://couchdb.org">CouchDb</a>
+databases. <a href="http://couchdb.org">CouchDb</a> is a document
+based database server. Clouchdb comes with
+a <a href="http://www.opensource.org/licenses/bsd-license.php">BSD
+Style License</a> for maximum agreeableness.
+</p>
+
+<p>
+  Author: Peter Eddy (peter.eddy at gmail.com)
+</p>
+
+<h2>Contents</h2>
+<ul>
+  <li><h3><a href="#news">News</a></h3></li>
+  <li><h3><a href="#download">Download and Installation</a></h3></li>
+  <li><h3><a href="#support">Support and mailing lists</a></h3></li>
+  <li><h3><a href="#examples">Examples</a></h3></li>
+  <li><h3><a href="#reference">API Reference</a></h3>
+    <ul>
+      <li><h4><a href="#db-api-reference">Connection and Database API</a></h4></li>
+      <li><h4><a href="#doc-api-reference">Document API</a></h4></li>
+      <li><h4><a href="#attachment-api-reference">Atachment API</a></h4></li>
+      <li><h4><a href="#views-api-reference">Views API</a></h4></li>
+      <li><h4><a href="#conditions-reference">Conditions Defined by Clouchdb</a></h4></li>
+    </ul>
+  </li>
+  <li><h3><a href="#symbols">Symbol Index</a></h3></li>
+  <li><h3><a href="#issues-and-bugs">Issues and Bugs</a></h3></li>
+</ul>
+
+<h2><a name="news">News</a></h2>
+
+<ul>
+  <li>
+    <b>July 12, 2009</b> Significant updates with breaking
+    changes. Major changes include:
+    <ul>
+      <li>
+        Support for Attachments. This is the first release with
+        attachment support.
+      </li>
+      <li>
+        Moved all database connection information into database
+        structure.
+      </li>
+      <li>
+        Major documentation updates and a few API simplications.
+      </li>
+    </ul>
+  </li>
+</ul>
+
+<h2><a name="download">Download and Installation</a></h2>
+<p>
+  The current download link for clouchdb can be found at
+  <a href="http://www.cliki.net/clouchdb">Clicki.net</a>. Clouchdb may
+  also be installed <a href="http://www.cliki.net/asdf">ASDF</a>.
+</p>
+
+<h3>Requirements:</h3>
+
+<ul>
+  <li><a href="http://www.weitz.de/drakma/">Drakma</a></li>
+  <li><a href="http://www.cliki.net/Parenscript/">Parenscript</a></li>
+  <li><a href="http://www.cliki.net/LIFT/">LIFT</a> testing framework</li>
+  <li>An available <a href="http://couchdb.org">CouchDb</a> server,
+  minimum supported version is 0.9.1</li>
+</ul>
+
+<h3>ASDF Install</h3>
+
+<p>
+Something like the following should be all that's necessary to install
+and load clouchdb using ASDF-INSTALL:
+</p>
+
+<pre class="code">
+(asdf-install:install 'clouchdb)  
+(asdf:operate 'asdf:load-op '#:clouchdb)
+</pre>
+
+<p>
+ ASDF-INSTALL will install library dependencies, though you must of
+ course install the <a
+ href="http://couchdb.org/CouchDB/CouchDBWeb.nsf/direct/Downloads">CouchDb
+ server</a> separately.
+</p>
+
+<h3>Unit tests</h3>
+
+<p>
+  The clouchdb distribution comes with a unit test suite which uses
+  the LIFT testing framework. To run the tests follow the following
+  steps:
+</p>
+
+<pre class="code">
+(asdf:oos 'asdf:load-op '#:clouchdb-tests)
+(in-package :clouchdb-tests)
+
+;; The following is only necessary if the couchdb server is not on 
+;; localhost, or authenticaion is enabled, respectively.
+(set-connection :host "hostname" :user "username" :password "password")
+
+(run-all-tests)
+</pre>
+
+<h3>Examples</h3>
+
+<p>
+  The distribution also includes an examples package:
+</p>
+
+<pre class="code">
+(asdf:oos 'asdf:load-op '#:clouchdb-examples)
+(in-package :clouchdb-examples)
+</pre>
+<p>
+  The file examples.lisp contains comments describing each example in detail.
+</p>
+
+<h3>CVS Access</h3>
+
+<p>
+  Clouchdb project hosting is graciously provided by common-lisp.net,
+  the CVS repository may be checked out anonymously as follows:
+</p>
+
+<pre class="code">
+cvs -z3 -d :pserver:anonymous:anonymous@common-lisp.net:/project/clouchdb/cvsroot co clouchdb
+</pre>
+
+<h2><a name="support">Support and mailing lists</a></h2>
+
+<p>
+  The following email lists have been provided by the <a
+  href="http://common-lisp.net">common-lisp.net</a> for clouchdb
+  development and information:
+</p>
+<ul>
+  <li> 
+    <a href="http://common-lisp.net/cgi-bin/mailman/listinfo/clouchdb-announce">
+      clouchdb-announce
+    </a>
+  </li>
+  <li>
+    <a href="http://common-lisp.net/cgi-bin/mailman/listinfo/clouchdb-devel">
+      clouchdb-devel
+    </a>
+  </li>
+</ul>
+
+<h2><a name="examples">Examples</a></h2>
+
+<p> 
+  The following clouchdb REPL sessions demonstrate various aspects of
+  the three major functional areas of the CouchDb API: Database API,
+  Document API and View API.
+</p>
+
+<p> 
+  NB: If you try these examples I suggest also viewing the results via
+  CouchDb's bulit-in HTML UI at <a
+  href="http://localhost:5984/_utils/">http://localhost:5894/_utils/</a>.
+  Of course adjust the URL for the actual CouchDb server and port in
+  use.
+</p>
+
+<h4>Example 1</h4>
+<p>The following example session demonstrates:</p>
+<ul>
+  <li> Setting the CouchDb host and database name</li>
+  <li> Finding CouchDb server version</li>
+  <li> Creation of a database</li>
+  <li> Creation of a document in that database</li>
+  <li> Fetching a document and adding a new field</li>
+</ul>
+
+<pre class="code">
+;; Create a package to try out clouchdb
+CL-USER> <b>(defpackage :clouchdb-user (:use :cl :clouchdb :parenscript))</b>
+#&lt;PACKAGE "CLOUCHDB-USER"&gt;
+
+CL-USER> <b>(in-package :clouchdb-user)</b>
+#&lt;Package "CLOUCHDB-USER"&gt;
+
+;; View the current (default) CouchDb connection configuration
+CLOUCHDB-USER> <b>*couchdb*</b>
+#S(CLOUCHDB::DB
+   :HOST "localhost"
+   :PORT "5984"
+   :NAME "default"
+   :PROTOCOL "http"
+   :USER NIL
+   :PASSWORD NIL
+   :DOCUMENT-FETCH-FN NIL
+   :DOCUMENT-UPDATE-FN NIL)
+
+;; The current database name is "default". Set appropriate values, for
+;; example, if the CouchDb server is running on host "odeon" set that 
+;; value like so:
+CLOUCHDB-USER> <b>(set-connection :host "odeon")</b>
+#S(CLOUCHDB::DB
+   :HOST "odeon"
+   :PORT "5984"
+   :NAME "default"
+   :PROTOCOL "http"
+   :USER NIL
+   :PASSWORD NIL
+   :DOCUMENT-FETCH-FN NIL
+   :DOCUMENT-UPDATE-FN NIL)
+
+;; GetCouchDb Server Information. This is the first communication
+;; with the CouchDb server.
+CLOUCHDB-USER> <b>(get-couchdb-info)</b>
+((:|couchdb| . "Welcome") (:|version| . "0.10.0a788899"))
+
+;; Create database named "default", (as configured in *couchdb*)
+CLOUCHDB-USER> <b>(create-db)</b>
+((:|ok| . T))
+
+;; Create a document with one field, and give it an ID of "gjc"
+CLOUCHDB-USER> <b>(create-document '((:name . "Gaius Julius Caesar")) :id "gjc")</b>
+((:|ok| . T) (:|id| . "gjc") (:|rev| . "1-1009420200"))
+
+;; Fetch the document we just created 
+CLOUCHDB-USER> <b>(get-document "gjc")</b>
+((:|_id| . "gjc") (:|_rev| . "1-1009420200") (:NAME . "Gaius Julius Caesar"))
+
+;; Add a field to this new document
+CLOUCHDB-USER> <b>(put-document (cons '(:lover . "Servilia Caepionis") *))</b>
+((:|ok| . T) (:|id| . "gjc") (:|rev| . "2-3501332342"))
+
+;; Get the updated document to verify that the new field stuck
+CLOUCHDB-USER> <b>(get-document "gjc")</b>
+((:|_id| . "gjc") (:|_rev| . "2-3501332342") (:LOVER . "Servilia Caepionis")
+ (:NAME . "Gaius Julius Caesar"))
+</pre>
+
+<h4>Example 2</h4>
+<p>Demonstrating:</p>
+<ul>
+  <li> Recreating a database</li>
+  <li> Creating a document that uses a CouchDb generated ID</li>
+  <li> Updating a the value of a document field</li>
+  <li> Creating a document with array and map field values</li>
+</ul>
+
+<pre class="code">
+;; Create, or drop and recreate, the current database
+CLOUCHDB-USER> <b>(create-db :if-exists :recreate)</b>
+((:|ok| . T))
+
+;; Create a document that will have it's ID assigned by the CouchDb server
+CLOUCHDB-USER> <b>(create-document '((:size . "medium") (:color . "blue")))</b>
+((:|ok| . T) (:|id| . "37173e3a844a342414272daa733e1302")
+ (:|rev| . "1-3111744915"))
+
+;; CouchDb generated IDs are too large to use easily in an
+;; interactive example like this, so create another document
+;; with a shorter ID to demonstrate property value updates
+CLOUCHDB-USER> <b>(create-document '((:size . "large") (:color . "blue")) 
+                                :id "someid")</b>
+((:|ok| . T) (:|id| . "someid") (:|rev| . "1-2190467195"))
+
+;; Change :color property
+CLOUCHDB-USER> <b>(put-document 
+                (setf (document-property :color 
+                                         (get-document "someid"))
+                      "green"))</b>
+((:|ok| . T) (:|id| . "someid") (:|rev| . "2-1066530650"))
+
+;; Show that the new property stuck
+CLOUCHDB-USER> <b>(get-document "someid")</b>
+((:|_id| . "someid") (:|_rev| . "2-1066530650") (:SIZE . "large")
+ (:COLOR . "green")
+
+;; In the following document the :tags field has an array value,
+;; the :demographics field has a map value, and the :religion map 
+;; key also has an associated map value.
+CLOUCHDB-USER> <b>(create-document '((:name . "Czech Republic")
+                                  (:tags . ("country" "European"))
+                                  ;; Field using map property value:
+                                  (:demographics . ((:population . 10230000)
+                                                    ;; A nested map property:
+                                                    (:religion . ((:agnostic . 0.59)
+                                                                  (:roman-catholic . 0.26)
+                                                                  (:protestant . 2.5)))
+                                                    (:political-system . "democracy"))))
+                                :id "czechrepublic")</b>
+((:|ok| . T) (:|id| . "czechrepublic") (:|rev| . "1-56705403"))
+
+;; Let's see what this document looks like
+CLOUCHDB-USER> <b>(get-document "czechrepublic")</b>
+((:|_id| . "czechrepublic") (:|_rev| . "1-56705403") (:NAME . "Czech Republic")
+ (:TAGS "country" "European")
+ (:DEMOGRAPHICS (:POPULATION . 10230000)
+  (:RELIGION (:AGNOSTIC . 0.59) (:ROMAN-CATHOLIC . 0.26) (:PROTESTANT . 2.5))
+  (:POLITICAL-SYSTEM . "democracy")))
+
+;; Let's see all documents in this database
+CLOUCHDB-USER> <b>(get-all-documents)</b>
+((:|total_rows| . 3) (:|offset| . 0)
+ (:|rows|
+  ((:|id| . "37173e3a844a342414272daa733e1302")
+   (:|key| . "37173e3a844a342414272daa733e1302")
+   (:|value| (:|rev| . "1-3111744915")))
+  ((:|id| . "czechrepublic") (:|key| . "czechrepublic")
+   (:|value| (:|rev| . "1-56705403")))
+  ((:|id| . "someid") (:|key| . "someid")
+   (:|value| (:|rev| . "2-1066530650")))))
+</pre>
+
+<h4><a name="example-3">Example 3</a></h4>
+<p>Demonstrating:</p>
+
+<ul>
+  <li> Conditionally creating a database if one does not already exist</li>
+  <li> The use
+  of <a href="http://www.cliki.net/Parenscript/">Parenscript</a> in
+  defining a view</li>
+  <li> Invoking persistent views to query database documents</li>
+</ul>
+
+<pre class="code">
+;; Create current database if it doesn't already exist.
+;; An (:IGNORED . T) result indicates that the create
+;; was ignored because the database already existed.
+CLOUCHDB-USER> <b>(create-db :if-exists :ignore)</b>
+((:|ok| . T) (:IGNORED . T))
+
+;; Create some documents representing various cities and their 
+;; associated countries.
+CLOUCHDB-USER> <b>(create-document '((:city . "New York City")
+                                  (:country . "US"))
+                                :id "nyc")</b>
+((:|ok| . T) (:|id| . "nyc") (:|rev| . "1-2083466274"))
+
+CLOUCHDB-USER> <b>(create-document '((:city . "Amsterdam")
+                                  (:country . "NL"))
+                                :id "amst") </b>
+((:|ok| . T) (:|id| . "amst") (:|rev| . "1-3092672538"))
+
+CLOUCHDB-USER> <b>(create-document '((:city . "Rotterdam")
+                                  (:country . "NL"))
+                                :id "rott") </b>
+((:|ok| . T) (:|id| . "rott") (:|rev| . "1-2303974290"))
+
+CLOUCHDB-USER> <b>(create-document '((:city . "Chicago")
+                                  (:country . "US"))
+                                :id "chi") </b>
+((:|ok| . T) (:|id| . "chi") (:|rev| . "1-1962544983"))
+
+;; Make a persistent view document that can be used to find cities in the 
+;; Netherlands, cities by country key, and cities by country and city.
+
+;; Note: Expressions within the (ps) expressions are <a href="http://www.cliki.net/Parenscript/">Parenscript</a>,
+;; a lispy way to generate JavaScript. Unquoted keyword symbols in Lisp 
+;; field names should be referenced in Parenscript with the double
+;; asterix names, as in the examples below. This is because JavaScript
+;; is case sensitive and unquoted Lisp symbols are converted to upper
+;; case. The double asterix syntax causes Parenscript to generate 
+;; upper case JavaScript property names.
+
+CLOUCHDB-USER> <b>(create-ps-view "cities"
+                               ;; Index of cities in the Netherlands
+                               (ps-view ("nl")
+                                 (defun map (doc)
+                                   (with-slots (*country* *city*) doc
+                                     (if (eql "NL" *country*)
+                                         (emit *city* doc)))))
+                               ;; Index by country
+                               (ps-view ("country")
+                                 (defun map (doc)
+                                   (with-slots (*country*) doc
+                                     (emit *country* doc))))
+                               ;; Index by country and city
+                               (ps-view ("multi")
+                                 (defun map (doc)
+                                   (with-slots (*country* *city*) doc
+                                     (emit (list *country* *city*) doc))))</b>
+((:|ok| . T) (:|id| . "_design/cities") (:|rev| . "1-544897531"))
+
+;; Invoke "nl" view to find cities in the Netherlands
+CLOUCHDB-USER> <b>(invoke-view "cities" "nl")</b>
+((:|total_rows| . 2) (:|offset| . 0)
+ (:|rows|
+  ((:|id| . "amst") (:|key| . "Amsterdam")
+   (:|value| (:|_id| . "amst") (:|_rev| . "1-3092672538") (:CITY . "Amsterdam")
+    (:COUNTRY . "NL")))
+  ((:|id| . "rott") (:|key| . "Rotterdam")
+   (:|value| (:|_id| . "rott") (:|_rev| . "1-2303974290") (:CITY . "Rotterdam")
+    (:COUNTRY . "NL")))))
+
+;; Use "nl" view to find a specific city in the Netherlands
+CLOUCHDB-USER> <b>(invoke-view "cities" "nl" :key "Rotterdam")</b>
+((:|total_rows| . 2) (:|offset| . 1)
+ (:|rows|
+  ((:|id| . "rott") (:|key| . "Rotterdam")
+   (:|value| (:|_id| . "rott") (:|_rev| . "1-2303974290") (:CITY . "Rotterdam")
+    (:COUNTRY . "NL")))))
+
+;; Invoke "country" view to search for US cities
+CLOUCHDB-USER> <b>(invoke-view "cities" "country" :key "US")</b>
+((:|total_rows| . 4) (:|offset| . 2)
+ (:|rows|
+  ((:|id| . "chi") (:|key| . "US")
+   (:|value| (:|_id| . "chi") (:|_rev| . "1-1962544983") (:CITY . "Chicago")
+    (:COUNTRY . "US")))
+  ((:|id| . "nyc") (:|key| . "US")
+   (:|value| (:|_id| . "nyc") (:|_rev| . "1-2083466274")
+    (:CITY . "New York City") (:COUNTRY . "US")))))
+
+;; Find the US city Chicago using the "multi" index:
+CLOUCHDB-USER> <b>(invoke-view "cities" "multi" :key '("US" "Chicago"))</b>
+((:|total_rows| . 4) (:|offset| . 2)
+ (:|rows|
+  ((:|id| . "chi") (:|key| "US" "Chicago")
+   (:|value| (:|_id| . "chi") (:|_rev| . "1-1962544983") (:CITY . "Chicago")
+    (:COUNTRY . "US")))))
+
+;; Use "multi" index to find all cities with country codes that start with "N"
+CLOUCHDB-USER> <b>(invoke-view "cities" "multi" :start-key '("N") :end-key '("O"))</b>
+((:|total_rows| . 4) (:|offset| . 0)
+ (:|rows|
+  ((:|id| . "amst") (:|key| "NL" "Amsterdam")
+   (:|value| (:|_id| . "amst") (:|_rev| . "1-3092672538") (:CITY . "Amsterdam")
+    (:COUNTRY . "NL")))
+  ((:|id| . "rott") (:|key| "NL" "Rotterdam")
+   (:|value| (:|_id| . "rott") (:|_rev| . "1-2303974290") (:CITY . "Rotterdam")
+    (:COUNTRY . "NL")))))
+</pre>
+
+<h4>Example 4</h4>
+<p>Demonstrating the use of the attachment API</p>
+
+<pre class="code">
+;; Adding an attachment to a document, this will create the document too
+;; if it does not already exist
+CLOUCHDB-USER> <b>(add-attachment "photos" 
+                               (pathname "/home/peter/images/camels.jpg"))</b>
+((:|ok| . T) (:|id| . "photos") (:|rev| . "1-1883927893"))
+
+;; Take a look at what was just created
+CLOUCHDB-USER> <b>(get-document "photos")</b>
+((:|_id| . "photos") (:|_rev| . "1-1883927893")
+ (:|_attachments|
+  (:|camels.jpg| (:|stub| . T) (:|content_type| . "application/octet-stream")
+   (:|length| . 54271))))
+
+;; Get just the list of attachemnts in the "photos" document
+CLOUCHDB-USER> <b>(attachment-list (get-document "photos"))</b>
+((:|camels.jpg| (:|stub| . T) (:|content_type| . "application/octet-stream")
+  (:|length| . 54271)))
+
+;; Copy the attachment from the document to /tmp directory on the local disk
+;; and return the resulting file name and path.
+CLOUCHDB-USER> <b>(save-attachment "photos" "camels.jpg" (pathname "/tmp/"))</b>
+#P"/tmp/camels.jpg"
+
+;; Copy the camels.jpg attachment from the document to a differently 
+;; named file on the local disk
+CLOUCHDB-USER> <b>(save-attachment "photos" "camels.jpg" 
+                                (pathname "/tmp/SomeCamels.jpg"))</b>
+#P"/tmp/SomeCamels.jpg"
+
+;; Copy camels.jpg attachment from the "photos" document to
+;; the "camels2.jpg" attachment of the "animals" document
+;; The with-attachment macro returns the attachment as
+;; an input stream and closes that stream before returning.
+CLOUCHDB-USER> <b>(with-attachment (in "photos" "camels.jpg")
+                 (add-attachment "animals" in :name "camels2.jpg"))</b>
+((:|ok| . T) (:|id| . "animals") (:|rev| . "1-2497134014"))
+
+;; Delete the "camels.jpg" attachment from the "photos" document
+CLOUCHDB-USER> <b>(delete-attachment "photos" "camels.jpg")</b>
+((:|ok| . T) (:|id| . "photos") (:|rev| . "2-3799224225"))
+
+;; Delete all attachments in the "animals" document
+CLOUCHDB-USER> <b>(dolist (at (attachment-list "animals"))
+                 (delete-attachment "animals" at))</b>
+</pre>
+
+<h2><a name="reference">API Reference</a></h2>
+
+<h3><a name="db-api-reference">Server Connection and Database Management API</a></h3>
+
+<p>
+  The API described in this has to do with managing CouchDb server
+  information and the creation and deletion of databases.
+</p>
+
+<p>[Symbol]<br />
+<a name="sym-couchdb"><b>*couchdb*</b></a>
+</p>
+<blockquote>
+<p>
+  This special variable contains an instance of the db structure which
+  identifies the target host, port and database name for general
+  database operations.
+</p>
+<p>
+  See (<a href="#sym-set-connection">set-connection</a>), 
+      (<a href="#sym-with-connection">with-connection</a>),
+      (<a href="#sym-make-db">make-db</a>)
+</p>
+</blockquote>
+
+<p>[Function]<br />
+<a name="sym-changes"><b>changes</b></a> &amp;key db
+</p>
+<blockquote>
+<p>
+  Return the document change activity for the current database or a
+  specific database specified with the <b>:db</b> keyword
+  parameter. The database can be specified as a string for a database
+  in the current CouchDb host, or as a db structure to specify a
+  database on a host other than the current one specified in *couchdb*.
+</p>
+Example:
+</p>
+<pre class="code">
+;; Changes for the current database
+(changes)
+<b>=></b> 
+((:|results|
+  ((:|seq| . 4) (:|id| . "_design/example")
+   (:|changes| ((:|rev| . "1-f83b5f3e154eb3c0ba2d721ad53211b3"))))
+  ((:|seq| . 5) (:|id| . "_design/toast")
+   (:|changes| ((:|rev| . "1-3525a1d974ba13a34d26e305116feab2")))))
+ (:|last_seq| . 5))
+
+;; Specify database
+(changes :db "example")
+<b>=></b> 
+((:|results|
+  ((:|seq| . 4) (:|id| . "_design/example")
+   (:|changes| ((:|rev| . "1-f83b5f3e154eb3c0ba2d721ad53211b3"))))
+  ((:|seq| . 5) (:|id| . "_design/toast")
+   (:|changes| ((:|rev| . "1-3525a1d974ba13a34d26e305116feab2")))))
+ (:|last_seq| . 5))
+
+;; Specify database and host
+(changes :db (make-db :name "example" :host "somehost"))
+<b>=></b> 
+((:|results|
+  ((:|seq| . 4) (:|id| . "_design/example")
+   (:|changes| ((:|rev| . "1-f83b5f3e154eb3c0ba2d721ad53211b3"))))
+  ((:|seq| . 5) (:|id| . "_design/toast")
+   (:|changes| ((:|rev| . "1-3525a1d974ba13a34d26e305116feab2")))))
+ (:|last_seq| . 5))
+</pre>
+</blockquote>
+
+<p>[Function]<br />
+<a name="sym-compact-db"><b>compact-db</b></a> &amp;key db
+</p>
+<blockquote>
+<p>
+  Initiates database compaction. The database to compact, if
+  unspecified, is the current value of *couchdb*. The <b>db</b>
+  parameter allows an alternate database to be specified, either as a
+  local database name string or a db structure instance.
+</p>
+Example:
+</p>
+<pre class="code">
+;; Compact current database
+(compact-db)
+<b>=></b> ((:|ok| . T))
+
+;; Compact "default" database
+(compact-db :db "default")
+
+;; Compact "default" database
+(compact-db :db (make-db :name "default"))
+<b>=></b> ((:|ok| . T))
+</pre>
+</blockquote>
+
+<p>[Function]<br />
+<a name="sym-create-db"><b>create-db</b></a> &amp;key db if-exists
+</p>
+<blockquote>
+<p>
+  Create a database. If specified, the <b>db</b> parameter may be
+  either the string value of a local database name or an instance of
+  the db structure. If the db parameter is unspecified the value of
+  *couchdb* will be used to create the database. 
+<p>
+  The <b>if-exists</b> parameter defaults to <b>:fail</b>, which will
+  raise an error if the database already exists. A value of
+  <b>:ignore</b> will simply ignore the this error. A value of
+  <b>:recreate</b> will delete the database if it exists, and then
+  recreate it.
+</p>
+<p>
+  See (<a href="#sym-set-connection">set-connection</a>),
+      (<a href="#sym-with-connection">with-connection</a>),
+      (<a href="#sym-delete-db">delete-db</a>)
+      (<a href="#sym-make-db">make-db</a>)
+</p>
+<p>
+Example:
+</p>
+<pre class="code">
+;; Create the database named in the current connection settings
+(set-connection :name "tvland")
+(create-db)
+<b>=></b> ((:|ok| . T))
+
+;; Specify name of database to create, if it already exists
+;; then ignore the request (don't generate error, don't
+;; recreate database), return (:ignored . T) if database did
+;; exist
+(create-db :db "tvland" :if-exists :ignore)
+<b>=></b> ((:|ok| . T) (:IGNORED . T))
+
+;; Create named db, if it already exists, drop it and 
+;; recreate it. Specify db using a db structure.
+(create-db (make-db :name "tvland") :if-exists :recreate)
+<b>=></b> ((:|ok| . T))
+</pre>
+
+</blockquote>
+
+<p>[Function]<br />
+<a name="sym-delete-db"><b>delete-db</b></a> &amp;key db if-missing
+</p>
+<blockquote>
+<p>
+  Delete a database. The <b>db</b> parameter, if specified, can be
+  either a string to indicate a local database name or a db
+  structure. If db is unspecified this function attempts to delete the
+  database named in the current *couchdb* context See (<a
+  href="#sym-set-connection">set-connection</a>) or (<a
+  href="#sym-with-connection">with-connection</a>).
+</p> 
+<p>
+  If <b>:ignore</b> is specified for the <b>if-missing</b> parameter,
+  errors resulting from the attempt to delete a non-existent database
+  are ignored.
+</p>
+  See (<a href="#sym-set-connection">set-connection</a>),
+      (<a href="#sym-with-connection">with-connection</a>),
+      (<a href="#sym-make-db">make-db</a>)
+      (<a href="#sym-create-db">create-db</a>)
+<p>
+  Example:
+</p>
+<pre class="code">
+;; Create then delete the database named in the current connection settings
+(set-connection :name "tvland")
+(create-db)
+<b>=></b> ((:|ok| . T))
+(delete-db)
+<b>=></b> ((:|ok| . T))
+
+;; Specify name of database to delete, if it doesn't exist
+;; then ignore the request (don't generate error), return 
+;; error result if database did not exist
+(delete-db :db "radio" :if-missing :ignore)
+<b>=></b> ((:|error| . "not_found") (:|reason| . "missing"))
+</pre>
+</blockquote>
+
+<p>[Function]<br />
+<a name="sym-get-couchdb-info"><b>get-couchdb-info</b></a> &amp;key db
+</p>
+<blockquote>
+<p>
+  Returns information about the CouchDb server specified in the
+  *couchdb* special variable, or via the db keyword parameter
+  if specified. The <b>db</b> keyword parameter may be either
+  the string name of a database or an instance of a db structure.
+</p>
+<pre class="code">
+(get-couchdb-info)
+<b>=></b> ((:|couchdb| . "Welcome") (:|version| . "0.10.0a788899"))
+</pre>
+</blockquote>
+
+<p>[Function]<br />
+<a name="sym-get-db-info"><b>get-db-info</b></a> &amp;key db
+</p>
+<blockquote>
+<p>
+  Returns database information for the connection and database in the
+  current context, or, if the db keyword parameter is specified, for
+  that database. The <b>db</b> keyword parameter may be either the
+  string name of a database or an instance of a db structure.
+</p>
+<p>
+Example:
+</p>
+<pre class="code">
+(get-db-info)
+<b>=></b> ((:|db_name| . "default") (:|doc_count| . 0) (:|doc_del_count| . 0)
+     (:|update_seq| . 0) (:|purge_seq| . 0) (:|compact_running|)
+     (:|disk_size| . 79) (:|instance_start_time| . "1247095993127949")
+     (:|disk_format_version| . 3))
+
+(get-db-info :db "default")
+<b>=></b> ((:|db_name| . "default") (:|doc_count| . 0) (:|doc_del_count| . 0)
+     (:|update_seq| . 0) (:|purge_seq| . 0) (:|compact_running|)
+     (:|disk_size| . 79) (:|instance_start_time| . "1247095993127949")
+     (:|disk_format_version| . 3))
+
+(get-db-info :db *couchdb*)
+<b>=></b> ((:|db_name| . "default") (:|doc_count| . 0) (:|doc_del_count| . 0)
+     (:|update_seq| . 0) (:|purge_seq| . 0) (:|compact_running|)
+     (:|disk_size| . 79) (:|instance_start_time| . "1247095993127949")
+     (:|disk_format_version| . 3))
+</pre>
+</blockquote>
+
+<p>[Function]<br />
+<a name="sym-list-dbs"><b>list-dbs</b></a>
+</p>
+<blockquote>
+  <p>
+    Returns a list of the databases that exist on the current database
+    host, as specified in *couchdb*.
+  </p>
+<pre class="code">
+(list-dbs)
+<b>=></b> ("default" "example1" "example2" "example3")
+</pre>
+</blockquote>
+
+<p>[Function]<br /> <a name="sym-make-db"><b>make-db</b></a> &key (db
+*couchdb*) host port name protocol user password document-fetch-fn
+document-update-fn
+</p>
+<blockquote>
+  <p>
+    Create a new instance of a DB structure. This function uses the
+    current values of *couchdb* to as defaults for the new instance
+    unless an alternate source of these default values is specified is
+    specified though the <b>db</b> parameter. The additional
+    parameters override any from the default source structure.
+  </p>
+<pre class="code">
+(make-db)
+<b>=></b> #S(CLOUCHDB::DB
+      :HOST "localhost"
+      :PORT "5984"
+      :NAME "default"
+      :PROTOCOL "http"
+      :USER NIL
+      :PASSWORD NIL
+      :DOCUMENT-FETCH-FN NIL
+      :DOCUMENT-UPDATE-FN NIL)
+
+(make-db :name "users" :host "www.company.com")
+<b>=></b> #S(CLOUCHDB::DB
+      :HOST "www.company.com"
+      :PORT "5984"
+      :NAME "users"
+      :PROTOCOL "http"
+      :USER NIL
+      :PASSWORD NIL
+      :DOCUMENT-FETCH-FN NIL
+      :DOCUMENT-UPDATE-FN NIL)
+
+;; Temporarily set current db connection info to alternate database
+(let ((*couchdb* (make-db :name "users" :host "www.company.com")))
+  (get-document "someuser"))
+</pre>
+</blockquote>
+
+<p>[Function]<br />
+<a name="sym-set-connection"><b>set-connection</b></a> &amp;key host
+name protocol port document-update-fn document-fetch-fn => db structure
+</p>
+<blockquote>
+<p>
+  Sets the host name, database name, protocol ("http" or "https") and
+  port number for the top-level connection to the CouchDb
+  server. Default connection settings are host="localhost",
+  protocol="http", port="5984" and database="default". <b>Note:</b>
+  This function destructively updates the *couchdb* special variable.
+</p>
+<p>
+  Functions may be specified that should invoked automatically each
+  time a document is created or updated (document-update-fn) and each
+  time a document is fetched (document-fetch-fn). These functions must
+  take one argument, the document, and return the potentially modified
+  document.
+</p>
+
+<pre class="code">
+*couchdb*
+<b>=></b> #S(CLOUCHDB::DB
+     :HOST "localhost"
+     :PORT "5984"
+     :NAME "default"
+     :PROTOCOL "http"
+     :USER NIL
+     :PASSWORD NIL
+     :DOCUMENT-FETCH-FN NIL
+     :DOCUMENT-UPDATE-FN NIL)
+
+(set-connection :host "orubus")
+*couchdb*
+<b>=></b> #S(CLOUCHDB::DB
+     :HOST "orubus"
+     :PORT "5984"
+     :NAME "default"
+     :PROTOCOL "http"
+     :USER NIL
+     :PASSWORD NIL
+     :DOCUMENT-FETCH-FN NIL
+     :DOCUMENT-UPDATE-FN NIL)
+</pre>
+
+<p>
+  Example of update function use:
+</p>
+<pre class="code">
+;; Create a function that adds or updates a timestamp field in a
+;; document and returns the modified document
+(defun time-stamper (doc) 
+  (set-document-property doc :timestamp (get-universal-time)))
+
+;; Cause time-stamper to be invoked with each document as
+;; it's updated or created
+(set-connection :document-update-fn #'time-stamper)
+
+;; Test the new time stamping feature
+(create-document '((:hello . "there")) :id "test")
+<b>=></b> ((:|ok| . T) (:|id| . "test") (:|rev| . "3721228336"))
+
+;; Display the new document with timestamp
+(get-document "test")
+<b>=></b> ((:|_id| . "test") (:|_rev| . "3721228336") (:TIMESTAMP . 3422649324) 
+  (:HELLO . "there"))
+</pre>
+
+<p> See (<a href="#sym-with-connection">with-connection</a>)</p>
+</blockquote>
+
+<p>[Function]<br />
+<a name="sym-replicate"><b>replicate</b></a> target &key source
+</p>
+<blockquote>
+<p>
+  Replicate source database to target. The <b>target</b> may be
+  specified either with a local database name string or a DB
+  structure. The <b>source</b> database defaults to the current value
+  of *couchdb*.
+</p>
+<p>
+  If the <b>:create-target</b> keyword parmaeter is true the database
+  will automatically create the replication target if necessary
+  (requires CouchDb version 0.11+)
+</p>
+</blockquote>
+
+<p>
+  Example:
+</p>
+<pre class="code">
+  ;; Replicate current database to databased named "backup" on the same server
+  (replicate "backup")
+
+  ;; Replicate current database to remotely hosted "backup" database
+  (replicate (make-db :name "backup" :host "remote"))
+   
+  ;; Replicate one remote database to another
+  (replicate (make-db :name "backup" :host "remoteB")
+     :source (make-db :name "source" :host "remoteA"))
+</pre>
+
+<p>[Macro]<br /> 
+<a name="sym-with-connection"><b>with-connection</b></a> (&amp;key db
+host name protocol port document-update-fn document-fetch-fn)
+&amp;body body => value returned by evaluation of body
+</p>
+<blockquote>
+<p>
+  Executes the statements in the body in the context of the specified
+  connection values. Sets the db, host name, database name, protocol
+  ("http" or "https") or port number of the CouchDb server to use in
+  the expressions in the body.
+</p>
+<p>
+  Functions that are called as documents are created or modified
+  (document-update-fn) and when documents are fetched
+  (document-fetch-fn) may be specified. These functions take one
+  parameter, the document being sent to or fetched from the database,
+  and return a potentially modified document.
+</p>
+<p>
+Example:
+</p>
+<pre class="code">
+;; Get document from specified host and database
+(with-connection (:host "cornichon.cucumber.net" :name "rfc")
+  (get-document "2616"))
+
+;; Copy document identified by "someid" from database "otherdb" to 
+;; current database, use "copy-of-someid" for copied document ID.
+(put-document
+  (with-connection (:name "otherdb")
+    (get-document "someid"))
+  :id "copy-of-someid")
+</pre>
+<p>See (<a href="#sym-set-connection">set-connection</a>)</p>
+</blockquote>
+
+<p>[Macro]<br /> 
+<a name="sym-with-temp-db"><b>with-temp-db</b></a> (&amp;body) => value returned by evaluation of body
+</p>
+<blockquote>
+  <p>
+    Perform operations in body in newly created, temporary
+    database. Database is created using the current connection
+    information in *clouchdb*, with a name that should not conflict
+    with existing database names. The database is deleted before
+    returning.
+  </p>
+<pre class="code">
+(with-temp-db 
+  *couchdb*)
+
+<b>=></b> #S(CLOUCHDB::DB
+      :HOST "localhost"
+      :PORT "5984"
+      :NAME "temp-3456412771-3"
+      :PROTOCOL "http"
+      :USER NIL
+      :PASSWORD NIL
+      :DOCUMENT-FETCH-FN NIL
+      :DOCUMENT-UPDATE-FN NIL)
+</pre>
+</blockquote>
+
+<hr>
+<h3><a name="doc-api-reference">Document API</a></h3>
+<p>
+  The Document ID
+</p>
+<blockquote>
+  <p>
+    Documents in clouchdb are identified by a document ID string which
+    must be unique within the database that contains the document. The
+    ID string may either be specified when the document is created or
+    it will be provided by the CouchDb server if unspecified.
+  </p>
+</blockquote>
+
+<p>
+  Document Content
+</p>
+<blockquote>
+  <p>
+    Document content takes the form of an associative list. The car of
+    each associative list element represents the document field name,
+    the cdr contains the value. Field names are specified as keyword
+    symbols. The following example demonstrates the creation of a
+    simple document with two fields, :name and :agent, and with a
+    specified document ID:
+  </p>
+
+  <pre class="code">
+(create-document '((<b>:name</b> . "Max") (<b>:agent</b> . 86)) :id "agent86")
+(get-document "agent86")
+<b>=></b> ((:|_id| . "agent86") (:|_rev| . "3674093994") (<b>:NAME</b> . "Max") (<b>:AGENT</b> . 86))
+  </pre>
+
+  <p>
+    By giving keyword symbols their special significance as field
+    names identifiers, clouchdb is able to distinguish between field
+    names and field values in certain situations which would otherwise
+    be ambiguous. For example, keyword symbols allow clocuhdb to
+    distinguish between associative lists and lists that contain
+    other, non-associative lists.
+  </p>
+
+  <p>
+    Field names in CouchDb are case sensitive. Field names specified
+    with unquoted keyword symbols are normally converted to upper case
+    by Lisp and this results in upper case field names in the CouchDb
+    server. Use quotes in symbol names to specify mixed or lower case
+    field names, like so:
+  </p>
+
+  <pre class="code">
+;; Create a document with a mixed case field name. This document
+;; will appear in the database as, "MixedCaseName"
+(create-document '((<b>:|MixedCaseName|</b> . "Value")) :id "mixed-case")
+(get-document "mixed-case")
+<b>=></b> ((:|_id| . "mixed-case") (:|_rev| . "2016717365") (<b>:|MixedCaseName|</b> . "Value"))
+  </pre>
+  
+  <p>
+    The native document representation in the CouchDb protocol is
+    a <a href="http://json.org/">JSON</a> object. Clouchdb translates
+    documents to and from JSON as necessary.
+  </p>
+
+  <p>
+    The value of a document field may be a string, a number, a list,
+    or an associative list. Document field values may be nested to
+    create arbitrarily complex document structures.
+  </p>
+
+<pre class="code">
+(create-document '((:string . "String Value")
+                   (:number . 42.0)
+                   (:list . (milk eggs "green beans"))
+                   (:alist . ((:string . "Another String")
+                              (:size . 3)
+                              (:list . ("un" "deux" "trois"))
+                              (:another-alist . ((a . "A") (b . "B")))))))
+</pre>
+
+</blockquote>
+
+<p>
+  Special Properties
+</p>
+
+<blockquote>
+<p>
+  When a document is created CouchDb assigns special properties to
+  that document, these properties cannot be modified by clients. The
+  special properties include the document's ID (:|_id|) and the
+  document revision number (:|_rev|). All special properties begin
+  with an underscore (_) symbol. CouchDb uses lower case for these
+  special properties therefore, as of Clouchdb version 0.0.8, they
+  will always appear as quoted keyword symbols.
+</p>
+
+<pre class="code">
+(create-document '((:name . "Maxwell Smart") (:agent . 86)) :id "max")
+<b>=></b> ((:|ok| . T) (:|id| . "max") (:|rev| . "3789799231"))
+
+(get-document "max")
+<b>=></b> ((:|_id| . "max") (:|_rev| . "3789799231") (:NAME . "Maxwell Smart") (:AGENT . 86))
+</pre>
+</blockquote>
+
+<p>
+  Please refer to the
+  <a href="http://www.couchdbwiki.com/index.php?title=HTTP_Doc_API">CouchDb
+  Document API</a> for general CouchDb document information.
+</p>
+
+<p>[Function]<br />
+<a name="sym-as-deleted-document"><b>as-deleted-document</b></a> doc
+</p>
+<blockquote>
+<p>
+  Return specified document in a format used by bulk-document-update
+  to indicate that the document should be deleted in the bulk
+  operation.
+</p>
+<p>
+Example: Use of as-deleted-document to delete multiple documents at once
+</p>
+<pre class="code">
+(bulk-document-update 
+  (mapcar #'as-deleted-document (list (get-document "one")
+                                       (get-document "two"))))
+<b>=></b>(((:|id| . "one") (:|rev| . "2-1128337663"))
+   ((:|id| . "two") (:|rev| . "2-1919003983")))
+</pre>
+</blockquote>
+
+
+<p>[Function]<br />
+<a name="sym-as-keyword-symbol"><b>as-keyword-symbol</b></a> string
+</p>
+<blockquote>
+<p>
+  Create a keyword symbol from a string, encode case information in
+  the result. This function translates Json field names from CouchDb
+  into the Lisp keyword symbols used in documents.
+</p>
+<p>
+Example:
+</p>
+<pre class="code">
+;; Lower case
+(as-keyword-symbol "lowercase")
+<b>=></b> :|lowercase|
+
+;; Upper case
+(as-keyword-symbol "UPPER-CASE")
+<b>=></b> :UPPER-CASE
+
+;; Mixed case
+(as-keyword-symbol "MixedCase")
+<b>=></b>:|MixedCase|
+</pre>
+<p>
+See (<a href="#sym-as-field-name-string">as-field-name-string</a>)
+</p>
+</blockquote>
+
+
+<p>[Function]<br />
+<a name="sym-as-field-name-string"><b>as-field-name-string</b></a> symbol
+</p>
+<blockquote>
+<p>
+  Convert a field name keyword symbol to a camelCase style
+  string. This function produces the field name in the format that
+  will be used and visible in CouchDb.
+</p>
+<p>
+Example:
+</p>
+<pre class="code">
+  ;; Upper case
+  (as-field-name-string :case)
+  <b>=></b> "CASE"
+
+  ;; Lower case
+  (as-field-name-string :|case|)
+  <b>=></b> "case"
+
+  ;; Mixed case
+  (as-field-name-string :|MixedCase|)
+  <b>=></b> "MixedCase"
+</pre>
+<p>
+  See (<a href="#sym-as-keyword-symbol">as-keyword-symbol</a>)
+</p>
+</blockquote>
+
+<p>[Function]<br />
+  <a name="sym-all-docs-by-seq"><b>all-docs-by-seq</b></a>
+</p>
+<blockquote>
+<p>
+  Return all updated or deleted documents in the order that these actions were done.
+</p>
+</blockquote>
+
+<p>[Function]<br />
+<a name="sym-couchdb-document-properties"><b>couchdb-document-properties</b></a> doc
+</p>
+<blockquote>
+  <p>
+    Return only CouchDb specific document properties, stripping off
+    CouchDb non <i>special</i> properties. The <b>doc</b> parameter
+    specifies the document.
+  </p>
+  <p>
+    See (<a href="#sym-document-properties">document-properties</a>)
+  </p>
+<pre class="code">
+(get-document "apple")
+<b>=></b> ((:|_id| . "apple") (:|_rev| . "1-4022626409") (:FRUIT . "Apple"))
+
+(<b>couchdb-document-properties</b> (get-document "apple"))
+<b>=></b> ((:|_id| . "apple") (:|_rev| . "1-4022626409"))</pre>
+</blockquote>
+
+<p>[Function]<br />
+<a name="sym-create-document"><b>create-document</b></a> doc &amp;key
+id
+</p>
+<blockquote>
+<p>
+  Create a new document, optionally specifying the document's ID. This
+  function simply calls (<a href="#sym-put-document">put-document</a>)
+  if an ID is specified, otherwise it calls
+  (<a href="#sym-post-document">post-document</a>).
+</p>
+<p>
+Example:
+</p>
+<pre class="code">
+;; Create document, specifying ID of "example"
+(create-document '((:string . "string") 
+                   (:number . 42)
+                   (:array . ("one" 2 "nine"))
+                   (:map . ((:foo . "bar")
+                            (:size . 3)
+                            (:colors . ("red" "blue" "green")))))
+                 :id "example")
+
+;; Create a document and let CouchDb provide an ID
+(create-document '((:some . "data")))
+</pre>
+<p>
+See (<a href="#sym-put-document">put-document</a>) (<a href="#sym-post-document">post-document</a>)</p>
+</blockquote>
+
+<p>[Function]<br /> <a
+name="sym-bulk-document-update"><b>bulk-document-update</b></a> docs &key all-or-nothing
+</p>
+
+<blockquote>
+<p>
+  Update multiple documents in a single request. The <b>docs</b>
+  parameter is a list of documents. Any document in the list that does
+  not contain an :|_id| value is created with a CouchDb assigned
+  ID. Documents that contain a '(:|_deleted| . t) top-level property
+  will be deleted. Documents that contain an :|_id| property will be
+  updated.
+</p>
+<p>
+  If <b>all-or-nothing</b> is true then the entire operation will fail
+  if any individual document operation cannot be performed. The
+  default is false.
+</p>
+<p>
+  Example: Create two simple documents in one operation using
+  bulk-document-update. The first document is created with a CouchdDb
+  assigned ID value, the ID for the second document is specified.
+</p>
+<pre class="code">
+(bulk-document-update (list '((:name . "Bob"))
+                            '((:name . "Ted") (:|_id| . "ted"))))
+<b>=></b>(((:|id| . "6df18bda590ee37927ec33cdcdd3e41b") (:|rev| . "1-2493069933"))
+   ((:|id| . "ted") (:|rev| . "1-1461663065")))
+</pre>
+</blockquote>
+
+<p>[Function]<br /> <a
+name="sym-copy-document"><b>copy-document</b></a> source destination
+&amp;key revision
+</p>
+<blockquote>
+<p>
+  Copy source document to destination. The <b>source</b> parameter may
+  be either a document ID or a document from which the ID will be
+  obtained. The <b>destination</b> parameter may also be a document ID
+  or document. If the destination document does not already exist it
+  will be created.
+</p>
+<p>
+  If the destination document does exist and the intention is to
+  overwrite that document, then the destination document revision must
+  be specified. If the destination parameter is a document then the
+  revision information will be taken from that document unless the
+  <b>:revision</b> parameter is specified. The revision parameter must
+  be the current revision of the destination document. Alternatively
+  the revision parameter may be the keyword <b>:current</b> which will
+  cause this function to fetch the current revision number from the
+  database.
+</p>
+<pre class="code">
+;; Copy document identified by "source" to new document "copy")
+(copy-document "source" "copy")
+
+;; Overwrite "destination" with "source" document
+(copy-document "source" (get-document "destination"))
+
+;; Overwrite "destination" with "source" document
+(copy-document "source" "destination" :revision :current)
+</pre>
+</blockquote>
+
+<p>[Function]<br /> <a
+name="sym-delete-document"><b>delete-document</b></a> &amp;key
+doc-or-id revision if-missing</p>
+<blockquote>
+<p>
+  Delete the specified document. The document may be specified with
+  either the string ID or with a document object, the latter which
+  must include the standard CouchDb special variables :|_id| and
+  :|_rev|. If revision is specified, either via the revision parameter
+  or in the :|_rev| property of the document, deletes the specific
+  revision of identified document. If no revision is specified,
+  deletes the most current revision by fetching the document by ID and
+  using its :|_rev| value for the deletion.
+</p>
+<p>
+  Signals a document-missing error if document does not exist, unless
+  the :if-missing keyword parameter is set to :ignore
+</p>
+</blockquote>
+
+<p>[Function]<br />
+<a name="sym-document-property"><b>document-property</b></a> name doc
+</p>
+<blockquote>
+<p>
+  Get the value of the named document property or nil if property does
+  not exist. This function can be used with setf to set property
+  values as well. The <b>name</b> parameter may be either a keyword
+  document property name or a list of such properties. If <b>name</b>
+  is a list, it specifies a nested property in the document starting
+  with the outermost property and proceeding to the most nested
+  property.
+</p>
+<pre class="code">
+(create-document '((:name . "Maxwell Smart") (:agent . 86)) :id "max")
+
+(document-property :name (get-document "max"))
+<b>=></b> "Maxwell Smart"
+
+;; Nested property change example
+(create-document '((:a . 1)(:b . ((:c . ((:d . "New York")))))) :id "nested")
+;; Change (:d . "New York") to (:d . "Boston")
+(put-document
+  (setf (document-property '(:b :c :d) (get-document "nested")) "Boston"))
+
+</pre>
+<p>
+See
+(<a href="#sym-set-document-property">set-document-property</a>)
+</p>
+</blockquote>
+
+<p>[Function]<br />
+<a name="sym-get-all-documents"><b>get-all-documents</b></a> &amp;key
+   key start-key start-key-docid end-key end-key-docid limit
+   stale descending skip group group-level reduce include-docs
+</p>
+<blockquote><p>
+Return ID and current revision information for all documents, ordered
+by ascending document ID. If descending is non-nil, returns documents
+in reverse order.
+</p></blockquote>
+
+<p>[Function]<br />
+<a name="sym-get-document"><b>get-document</b></a> id &amp;key revision
+revisions revision-info if-missing conflicts</p>
+<blockquote>
+<p>
+  Get document by <b>id</b>. If <b>revision</b> is specified attempts
+  to retrieve specified revision of document. If <b>revisions</b> is
+  non-nil, returns brief revision information for identified
+  document. If <b>revision-info</b> is non-nil, returns more detailed
+  revision information for document. The revision, revisions, and
+  revision-info parameters are mutually exclusive. If <b>conflicts</b>
+  is true, return document replication conflicts if they exist.
+</p>
+<p>
+  If the specified document is not found in the database this function
+  will signal an error unless <b>if-missing</b> is <b>:ignore</b>.
+</p>
+<p>
+  <strong>Note:</strong> Revision information is used by CouchDb to
+  support database replication. You should not use revision data to
+  build version control type systems becuase older revisions will be
+  deleted automatically when no longer needed by the database.
+</p>
+</blockquote>
+
+<p>[Function]<br />
+<a name="sym-get-uuids"><b>get-uuids</b></a> &key count
+</p>
+<blockquote>
+  <p>
+    Get UUIDs from the datbase. By default returns one, but the
+    <b>count</b> parameter can be used to specifiy the number of UUIDs
+    to return. Note that the database does not guarantee that the
+    UUIDs returned are not already used in the database.
+  </p>
+</blockquote>
+
+<p>[Function]<br />
+<a name="sym-document-properties"><b>document-properties</b></a> doc
+</p>
+<blockquote>
+  <p>
+    Return only non-CouchDb specific document properties, stripping
+    off CouchDb <i>special</i> properties. The <b>doc</b> parameter
+    specifies the document.
+  </p>
+  <p>
+    See (<a href="#sym-couchdb-document-properties">couchdb-document-properties</a>)
+  </p>
+<pre class="code">
+(get-document "apple")
+<b>=></b> ((:|_id| . "apple") (:|_rev| . "1-4022626409") (:FRUIT . "Apple"))
+
+(document-properties (get-document "apple"))
+<b>=></b> ((:FRUIT . "Apple"))
+</blockquote>
+
+<p>[Function]<br />
+<a name="sym-post-document"><b>post-document</b></a> doc</p>
+<blockquote>
+<p>
+  Create a document and let the server assign an ID. An existing
+  :|_id| field in the document will be ignored, the server will create
+  a new document and assign it a new ID. This therefore is an easy way
+  to copy documents. The return value includes the server-assigned
+  document ID in the :|id| property.
+</p>
+
+<p>
+Example:
+</p>
+<pre class="code">
+;; Create a document, let server assign an ID
+(post-document '((:field . "value")))
+
+<b>=></b> ((:|ok| . T) (:|id| . "4A0FF20F6AE5168B771BC41D4557F650") (:|rev| . "16873930"))
+</pre>
+
+<p>See (<a href="#sym-create-document">create-document</a>) (<a href="#sym-put-document">put-document</a>)</p>
+</blockquote>
+
+<p>[Function]<br />
+<a name="sym-put-document"><b>put-document</b></a> doc &amp;key id</p>
+<blockquote>
+<p>
+Create a new document or update an existing one. If the document is
+new an ID must be specified. If the document has been fetched from the
+server (and still retains its :|_*| CouchDb special properties) then
+no ID need be specified. If a parameter ID is provided and it differs
+from the :|_id| value in the document, then a new document is created
+with the provided ID and any non-special properties of the document.
+</p>
+<p>
+Example:
+</p>
+<pre class="code">
+;; Create document "A"
+(put-document '((:name . "Laraby")) :id "A")
+
+;; Copy to new document "B"
+(put-document (get-document "A") :id "B")
+
+;; Add field to document "B"
+(put-document (cons '(:new-field . "new-value")) (get-document "B"))
+</pre>
+<p>See (<a href="#sym-create-document">create-document</a>) (<a href="#sym-post-document">post-document</a>)</p>
+</blockquote>
+
+<p>[Function]<br />
+<a name="sym-query-document"><b>query-document</b></a> query document
+</p>
+<blockquote>
+<p>
+  This function can be used to extract data from complex documents or
+  other CouchDb data such as results returned from views. The query
+  parameter is a list containing zero or more query expressions. A
+  query expression can be either a keyword symbol, which simply
+  matches the keyword field name in the document, wild card symbols,
+  or a function.
+</p>
+<p>
+  Note that this function does not represent any CouchDb API, nor does
+  it communicate with the database other than when functions are used
+  in the query and these functions communicate with the database.
+</p>
+<table summary="query operators">
+   <caption><em>Query Operators</em></caption>
+   <tr>
+     <th>Type</th>
+     <th>Description</th>
+   </tr>
+   <tr>
+     <td>keyword&nbsp;symbol</td>
+     <td>Matches field name in document</td>
+   </tr>
+   <tr>
+     <td>:*</td>
+     <td>Wild card, matches any symbol at the current level in the document</td>
+   </tr>
+   <tr>
+     <td>:**</td>
+     <td>Recursive wild card, matches subsequent symbol at any level
+       in the document below the current level
+     </td>
+   </tr>
+   <tr>
+     <td>function</td>
+     <td>
+       The function should accept a single parameter. This parameter
+       will contain the value matched by the previous query term, or
+       the initial document if the function is the first element in
+       the query list. Query operators following the function are
+       applied to the result of the function or, if the function is
+       the last operator in the query, the function return value is
+       collected in the query-document results list.
+     </td>
+   </tr>
+</table>
+<p>
+Examples:
+</p>
+<pre class="code">
+;; Secret Agent document to query
+(setf *agents* '((:control
+                  (((:name . "Max") (:agent . 86)) 
+                   ((:name . "Ninety Nine") (:agent . 99))
+                   ((:agent . 44))
+                   ((:agent . 13))
+                   ((:name . "Hymie"))
+                   ((:name . "Larrabee"))
+                   ((:name . "Fang") (:agent . "K-9"))))
+                 (:kaos
+                  (((:name . "Siegfried"))
+                   ((:name . "Shtarker"))
+                   ((:name . "The Claw"))
+                   ((:name . "Colonel von Klaus"))))))
+
+;; Get the agent values for all Control agents that have these values
+(query-document '(:control :agent) *agents*)
+<b>=></b> ("K-9" 13 44 99 86)
+
+;; Get names of agents that work for Control or Kaos, for agents who have names
+(query-document '(:* :name) *agents*)
+<b>=></b> ("Colonel von Klaus" "The Claw" "Shtarker" "Siegfried" "Fang" "Larrabee" 
+  "Hymie" "Ninety Nine" "Max")
+
+;; Get a value from a deeply nested position
+(query-document '(:** :value) '((:a . 
+                                 ((:very . 
+                                   ((:deeply . 
+                                     ((:nested . 
+                                       ((:value . "Deep Value")))))))))))
+<b>=></b> ("Deep Value")
+
+;; Use the recursive wild card operator to retrieve values from any level
+(query-document '(:** :value) 
+                '((:one . 
+                   ((:very . 
+                     ((:deeply . 
+                       ((:nested . 
+                         ((:value . "Deep Value")))))))))
+                  (:this . 
+                    ((:value . 
+                      ((:is . 
+                        ((:different . "Different Deep Value")))))))))
+
+<b>=></b> (((:IS (:DIFFERENT . "Different Deep Value"))) "Deep Value")
+
+;; Functions
+;;
+;; Query the results of (<a href="#sym-get-all-documents">get-all-documents</a>), extracting all
+;; document :|id| values in the :|rows| property.
+;; 
+;; Use the clouchdb function (<a href="#sym-get-document">get-document</a>) to look up the 
+;; corresponding document for each value of :|id|. The form below will 
+;; return the value of the :name property for all documents in the
+;; current database that have one or more :name properties
+
+(query-document `(:|rows| :|id| ,#'get-document :** :name) (get-all-documents))
+
+</pre>
+</blockquote>
+<p>
+See the function (example3) in examples.lisp for more information
+</p>
+
+<p>[Function]<br />
+<a name="sym-set-document-property"><b>set-document-property</b></a> doc &amp;rest args</p>
+<blockquote>
+<p>
+Modify existing named property or add property names and values to a
+document. This function returns a new copy of the specified document,
+it does not modify its document parameter. 
+</p>
+<p>
+Example:
+</p>
+<pre class="code">
+(create-document '((:name . "Maxwell Smart") (:agent . 86)) :id "max")
+
+(document-property :name (get-document "max"))
+<b>=></b> "Maxwell Smart"
+
+;; Modify existing :name value and add :employer property
+(put-document 
+  (set-document-property (get-document "max")
+                         :name "Maxwell Smart, Secret Agent"
+                         :employer "Control"))
+(get-document "max")
+<b>=></b> ((:|_id| . "max") (:|_rev| . "655510103") (:EMPLOYER . "Control")
+    (:NAME . "Maxwell Smart, Secret Agent") (:AGENT . 86))
+</pre>
+</blockquote>
+
+<hr/><h3><a name="attachment-api-reference">Attachment API</a></h3>
+
+<p>
+  Attachments are files that are associated with documents in the
+  database. An attachment may be a file of any type, text or
+  binary. Files are not normally viewable as document data. Their
+  presence in a document is indicated by a list of meta data in the
+  document's :|_attachments| property.
+</p>
+
+<blockquote>
+<pre class="code">
+;; A document with three attachments
+(get-document "images")
+<b>=></b>((:|_id| . "images") (:|_rev| . "7-1856240461")
+   (:|_attachments|
+    (:|camels.jpg| (:|stub| . T) (:|content_type| . "image/jpeg")
+     (:|length| . 54271))
+    (:|butter.jpg| (:|stub| . T) (:|content_type| . "image/jpeg")
+     (:|length| . 54271))
+    (:|birds.jpg| (:|stub| . T) (:|content_type| . "application/octet-stream")
+     (:|length| . 54271))))
+</pre>
+</blockquote>
+<p>
+  This library implements support only for stand-alone attachment
+  CouchDb API.
+</p>
+
+<p>[Function]<br /> <a
+name="sym-add-attachment"><b>add-attachment</b></a> doc-or-id
+content &key name revision content-type
+</p>
+<blockquote>
+<p>
+  Adds an attachment to the document specified by <b>doc-or-id</b>,
+  which may be the string identifier of the document or the document
+  itself. If the string ID is specified but the document's revision is
+  unspecified, this function will fetch the current document from the
+  database in order to obtain the necessary revision information.  If
+  a document object is specified then the revision information is
+  taken from that object, and no additional fetch is required.
+</p>
+<p>
+  The <b>content</b> parameter becomes the content of the attachment,
+  and may be either a string, an open binary input stream, a pathname
+  or a sequence of octets (clouchdb passes this value directly to
+  Drakma, so see <a href="http://weitz.de/drakma/#content">Drakma's
+  content documentation</a> for more information.)
+</p>
+<p>
+  The <b>content-type</b> parameter allows the document to be created
+  and tagged as containing the specified content type. The
+  <b>name</b> parameter names the attachment. If the attachment
+  content comes from a file the attachment name will be the file name
+  if this parameter is unspecified. If the attachment content is not
+  from a file then the attachment must be named with this parameter.
+</p>
+<p>
+  If the doc-or-id parameter is a string value and <b>revision</b> is
+  unspecified, this function will fetch the current document from the
+  database in order to obtain the current document revision number.
+</p>
+
+<pre class="code">
+;; Add file attachment with content type
+(add-attachment "Moscow"
+                (pathname "/home/peter/Pictures/images/Zaryadye.jpg")
+                :content-type "image/jpeg")
+<b>=></b>((:|ok| . T) (:|id| . "Moscow") (:|rev| . "1-2164210511"))
+
+;; Add attachment but supply an attachment name to use instead of
+;; the file name
+(add-attachment "Moscow"
+                (pathname "/home/peter/Pictures/images/Suharevskaia.jpg")
+                :name "Sukharevskaya.jpeg"
+                :content-type "image/jpeg")
+<b>=></b>((:|ok| . T) (:|id| . "Moscow") (:|rev| . "2-2235841483"))
+
+;; Add string value as attachment
+(add-attachment "StringDoc" "Attachment Content" :name "StringAttachment")
+<b>=></b>((:|ok| . T) (:|id| . "StringDoc") (:|rev| . "1-2376170595"))
+</blockquote>
+
+<p>[Function]<br /> <a
+name="sym-attachment-list"><b>attachment-list</b></a> doc-or-id &key fetch
+</p>
+<blockquote>
+<p>
+  List document attachments. The document, specified by
+  <b>doc-or-id</b>, may be the string identifier of the document or
+  the document itself. If the string ID is specified this function
+  will fetch the document from the database in order to obtain the
+  attachment information. If a document object is specified then the
+  attachment information is taken from that object, and no database
+  communication is performed.
+</p>
+<p>
+  If a document is provided and parameter <b>fetch</b> is true this
+  function will fetch a fresh copy of the document from the database.
+</p>
+<pre class="code">
+(attachment-list "Moscow")
+<b>=></b>((:|Sukharevskaya.jpeg| (:|stub| . T) (:|content_type| . "image/jpeg")
+    (:|length| . 119891))
+   (:|Zaryadye.jpg| (:|stub| . T) (:|content_type| . "image/jpeg")
+    (:|length| . 30057)))
+</pre>
+</blockquote>
+
+<p>[Function]<br /> <a
+name="sym-attachment-name"><b>attachment-name</b></a> attachment
+</p>
+<blockquote>
+<p>
+  Return the attachment name as a string. The <b>attachment</b>
+  parameter maybe a symbol name, e.g. :|file.jpg|, a string, or one
+  element of a document's attachment list.
+</p>
+
+Example: Print the names of all document attachments
+
+<pre class="code">
+(dolist (attachment (attachment-list "SomeDocument"))
+  (format t "Name: ~s~%" (attachment-name attachment)))
+<b>=></b> Name: "Sukharevskaya.jpeg"
+   Name: "Zaryadye.jpg"
+</pre>
+</blockquote>
+
+</blockquote>
+
+<p>[Function]<br /> <a
+name="sym-delete-attachment"><b>delete-attachment</b></a>
+doc-or-id attachment &key revision
+</p>
+<blockquote>
+<p>
+  Delete an attachment. The <b>doc-or-id</b> parameter may be the
+  string identifier of the document or the document itself from which
+  the ID will be obtained.
+</p>
+<p>
+  The <b>attachment</b> parameter is either the string name of the
+  attachment to remove from the document, a keyword symbol (as
+  obtained from the car of the elements of the :|_attachments| value
+  of a document) or it is one element of the list of attachments in a
+  document."
+</p>
+<p>
+  If the doc-or-id parameter is a document the document revision will
+  be taken from that object. Otherwise, the <b>revision</b> parameter
+  indicates the revision of the document from which to delete the
+  attachment. If this parameter is not supplied then a request will be
+  made to the database to obtain the document's current revision
+  number.
+</p>
+</blockquote>
+
+<p>[Function]<br /> <a
+name="sym-get-attachment-stream"><b>get-attachment-stream</b></a>
+doc-or-id attachment
+</p>
+<blockquote>
+<p>
+  Return attachment stream. The document, specified by
+  <b>doc-or-id</b>, may be the string identifier of the document or
+  the document itself. The <b>attachment</b> parameter is either the
+  string name of the attachment, a keyword symbol attachment name (as
+  it would appear in the car of the document's attachment list), or an
+  element of the document's attachment list. Caller must always close
+  the returned stream.
+</p>
+</blockquote>
+
+<p>[Function]<br /> <a
+name="sym-save-attachment"><b>save-attachment</b></a>
+doc-or-id attachment path &key if-does-not-exist if-exists
+</p>
+<blockquote>
+<p>
+  Save specified document attachment to disk file. The document,
+  specified by <b>doc-or-id</b>, may be the string identifier of the
+  document or the document itself from which the ID will be
+  obtained. 
+</p>
+<p>
+  The <b>attachment</b> parameter is either the string name of the
+  attachment or an element from the document's attachment list. The
+  <b>path</b> parameter must be a pathname. If path identifies a
+  directory then the target file will be created in that directory
+  with the same name as the attachment in the document. If the path
+  ends with a file name then the attachment will be created with that
+  name.
+</p>
+<pre class="code">
+;; Save an attachment to /tmp/camels.jpg. Directory name must end
+;; with / 
+(save-attachment "images" "camels.jpg" (pathname "/tmp/"))
+<b>=></b>#P"/tmp/camels.jpg"
+
+;; Save an attachment to a different file name in /tmp/
+(save-attachment "images" "camels.jpg" (pathname "/tmp/someCamels.jpg"))
+<b>=></b>#P"/tmp/someCamels.jpg"
+</pre>
+</blockquote>
+
+<p>[Macro]<br /> <a
+name="sym-with-attachment"><b>with-attachment</b></a> stream doc-or-id
+attachment &body body
+</p>
+<blockquote>
+<p>
+  Macro that provides the attachment as an input <b>stream</b> and
+  automatically closes that stream after executing the statements in
+  its body. The document containing the attachment, specified by
+  <b>doc-or-id</b>, may be the string identifier of the document or
+  the document itself from which the document ID will be obtained. The
+  <b>attachment</b> parameter is either the string name of the
+  attachment or a single element of the document's attachment list.
+</p>
+<pre class="code">
+;; Use with-attachment to copy attachment "camels.jpg" from document
+;; "images" to document "animals"
+(with-attachment (in "images" "camels.jpg")
+  (add-attachment "animals" in :name "camels.jpg"))
+<b>=></b>((:|ok| . T) (:|id| . "animals") (:|rev| . "1-2861475448"))
+</pre>
+</blockquote>
+
+<hr/><h3><a name="views-api-reference">Views API</a></h3>
+ 
+<p>
+  Views are the query mechanism for CouchDb. There are two types of
+  views in CouchDb: ad hoc and persistent. As you might expect
+  persistent views are stored in the database. Ad hoc views are not,
+  they are sent from the client each time they're used. Native CouchDb
+  views are expressed in JavaScript. While it is possible to use
+  JavaScript with the Clouchdb API, it may be more natural to use the
+  <a href="http://www.cliki.net/Parenscript/">Parenscript</a> library
+  instead. Parenscript is library for generating JavaScript using Lisp
+  syntax.
+</p>
+<p>
+  Note that CouchDb and JavaScript are case sensitivie. Field names in
+  documents created using un-quoted keyword symbol field names (e.g.,
+  :name) will be converted to upper case by Lisp and result in upper
+  case field names in CouchDb and JavaScript.
+</p>
+<p>
+  For general CouchDb View information, please see the <a
+  href="http://wiki.apache.org/couchdb/HTTP_view_API">the CouchDb View
+  API wiki</a>.
+</p>
+
+<table summary="query operators" width="80%">
+   <caption><em>Field Name Case Comparison</em></caption>
+   <tr>
+     <th>Clouchdb</th>
+     <th>Parenscript</th>
+     <th>CouchDb/JavaScript</th>
+   </tr>
+   <tr>
+     <td>:name, :NAME, :NaMe</td>
+     <td>*name*, *NAME* *NaMe*</td>
+     <td>NAME</td>
+   </tr>
+   <tr>
+     <td>:|name|</td>
+     <td>name</td>
+     <td>name</td>
+   </tr>
+   <tr>
+     <td>:|mixedCase|</td>
+     <td>mixed-case</td>
+     <td>mixedCase</td>
+   </tr>
+</table>
+
+
+<p>
+Please refer
+to <a href="http://www.couchdbwiki.com/index.php?title=HTTP_View_API">
+CouchDb View API Documentation</a> for general information about CouchDb views.
+  <b>Note</b>: Many details of CouchDb views have yet to be
+  documented. In the meantime,
+  see <a href="http://www.cmlenz.net/blog/2007/10/couchdb-joins.html">this
+  blog post</a> for some useful hints.
+</p>
+
+<p>[Function]<br />
+<a name="sym-ad-hoc-view"><b>ad-hoc-view</b></a> view &amp;key key start-key
+                        start-key-docid end-key end-key-docid limit
+                        stale descending skip group group-level reduce
+                        include-docs language
+</p>
+<blockquote>
+<p>
+Executes a one-time, non persistent view (query). The view is specified as a
+JavaScript anonymous function.
+</p>
+<p>
+  Keyword parameters 
+</p>
+<ul>
+  <li>
+    <b>key</b> A value to match against the document property or
+    properties mapped in the view. Only documents matching this
+    value are returned. Values may be strings or s-expresions.
+  </li>
+  <li>
+    <b>start-key</b> Return documents with mapped keys greater than or
+    equal to this value. The value may be expressed as a string or an
+    s-epression.
+  </li>
+  <li>
+    <b>start-key-docid</b> The document ID of the first document to return.
+  </li>
+  <li>
+    <b>end-key</b> Return documents with mapped keys less than this
+    value. The value may be expressed as a string or an s-epression.
+  </li>
+  <li>
+    <b>end-key-docid</b> The document ID of the last document to return.
+  </li>
+  <li>
+    <b>limit</b> The maximum number of rows to return. If zero, returns
+    only result meta-data.
+  </li>
+  <li>
+    <b>stale</b> If "ok", CouchDb does not refresh view data when
+    executing the query. This is a performance option that may
+    result in faster queries but potentially not return up-to-date
+    data.
+  </li>
+  <li>
+    <b>descending</b> If true, return results in reverse order.
+  </li>
+  <li>
+    <b>skip</b> Number of result rows to skip.
+  </li>
+  <li>
+    <b>group</b> t or nil, controls whether the reduce function reduces to a set of
+    distinct keyes or to a single result row
+  </li>
+  <li>
+    <b>group-level</b> integer?
+  </li>
+  <li>
+    <b>reduce</b> If nil, return the reulst of the map function by not applying
+    the reduce function.
+  </li>
+  <li>
+    <b>include-docs</b> If not nil, include the associated documents in the results.
+  </li>
+  <li>
+    <b>language</b> The view language, default is "javascript"
+  </li>
+</ul>
+<p>
+Example:
+</p>
+<pre class="code">
+(create-document '((:name . "Laraby")))
+(ad-hoc-view "function(doc) { if (doc.NAME == 'Laraby') { map(null,doc.NAME) } }")
+</pre>
+
+<p>
+  Ok, but this is Lisp and JavaScript looks exotic and scary. To
+  solve this problem we use Parenscript. The following expression
+  generates the same view with a more familiar syntax:
+</p>
+
+<pre class="code">
+(create-document '((:name . "Laraby")))
+(ad-hoc-view (ps (lambda (doc)
+                   (with-slots (*name*) doc
+                     (if (eql *name* "Laraby")
+                       (emit nil doc))))))
+</pre>
+<p>
+ Note that it is not necessary for every document in the database to
+ have a field called 'name'. This view will return only those
+ documents that have a name field and where the value of that name
+ field is "Laraby". No errors result from documents with no name
+ field.
+</p>
+<p>
+  The (with-slots) expression above can be eliminated, if desired, like so:
+</p>
+<pre class="code">
+(ad-hoc-view (ps (lambda (doc)
+                   (if (eql doc.*name* "Laraby")
+                     (emit nil doc))))))
+</pre>
+<p>See (<a href="#sym-create-ps-view">create-ps-view</a>) and 
+<a href="#example-3">Example 3</a></p>
+</blockquote>
+
+<p>[Function]<br />
+<a name="sym-create-ps-view"><b>create-ps-view</b></a> {view-definition}*</p>
+<blockquote>
+<p>
+  Creates a view document containing one or more view definitions. The
+  view definitions may be specified in a JavaScript string
+  or <a href="http://www.cliki.net/Parenscript/">Parenscript</a>
+  s-expresions.
+</p>
+<p>
+
+The following example view definition is the clouchdb equivalent of
+the JavaScript views defined under the "Creating Views" section of the
+<a href="http://wiki.apache.org/couchdb/HTTP_view_API">CouchDb View
+API wiki page</a>.
+</p>
+<pre class="code">
+(create-ps-view "company"
+                (ps-view ("all")
+                  (defun map (doc)
+                    (with-slots (type) doc
+                      (if (eql type "customer")
+                          (emit null doc)))))
+                (ps-view ("by_lastname")
+                  (defun map (doc)
+                    (with-slots (type last-name) doc
+                      (if (eql type "customer")
+                          (emit last-name doc))))
+                (ps-view ("total_purchases")
+                  (defun map (doc)
+                    (with-slots (type customer amount)
+                      (if (eql type "purchase")
+                          (emit customer amount))))
+                  (defun reduce (keys values)
+                    (sum values)))))
+</pre>
+<p>
+See (<a href="#sym-invoke-view">invoke-view</a>)
+(<a href="#sym-ad-hoc-view">ad-hoc-view</a>)
+and <a href="#example-3">Example 3</a>
+</p>
+</blockquote>
+
+<p>[Function]<br />
+<a name="sym-delete-view"><b>delete-view</b></a> id &amp;key rev</p>
+<blockquote>
+<p>
+Delete view document identified by id. If revision is specified,
+delete specific revision of view document.
+</p>
+<p>See (<a href="#sym-create-ps-view">create-ps-view</a>)</p>
+</blockquote>
+
+<p>[Function]<br />
+<a name="sym-invoke-view"><b>invoke-view</b></a> id view &amp;key
+                        key start-key
+                        start-key-docid end-key end-key-docid limit
+                        stale descending skip group group-level reduce
+                        include-docs
+</p>
+<blockquote>
+<p>
+Invoke specified view in identified view document.
+</p>
+<p>
+  Keyword parameters 
+</p>
+<ul>
+  <li>
+    <b>key</b> A value to match against the document property or
+    properties mapped in the view. Only documents matching this value
+    are returned. The value may be expressed as a string or an
+    s-epression.
+  </li>
+  <li>
+    <b>start-key</b> Return documents with mapped keys greater than or
+    equal to this value. The value may be expressed as a string or an
+    s-epression.
+  </li>
+  <li>
+    <b>start-key-docid</b> The document ID of the first document to return.
+  </li>
+  <li>
+    <b>end-key</b> Return documents with mapped keys less than this
+    value. The value may be expressed as a string or an s-epression.
+  </li>
+  <li>
+    <b>count</b> The maximum number of rows to return. If zero, returns
+    only result meta-data.
+  </li>
+  <li>
+    <b>update</b> If nil, CouchDb does not refresh view data when
+    executing the query. This is a performance option that may
+    result in faster queries but potentially not return up-to-date
+    data.
+  </li>
+  <li>
+    <b>descending</b> If true, return results in reverse order.
+  </li>
+  <li>
+    <b>skip</b> Number of result rows to skip.
+  </li>
+</ul>
+
+<p>
+Example:
+</p>
+<pre class="code">
+;; Document to query
+(create-document '((:name . "Laraby")))
+
+;; Views defined with <a href="http://www.cliki.net/Parenscript/">Parenscript</a>
+(create-ps-view <b>"names"</b>
+  (cons <b>"laraby"</b>
+        (ps (lambda (doc)  ;; parameter-less view
+              (with-slots (name) doc
+                (if (eql "Laraby" name)
+                  (emit nil doc))))))
+  (cons <b>"name"</b>
+        (ps (lambda (doc)  ;; parameter view
+              (with-slots (name) doc
+                (emit name doc))))))
+
+;; Find document by invoking parameter-less "laraby" view
+(invoke-view <b>"names" "laraby"</b>)
+
+;; Find document by invoking "name" view with key parameter
+(invoke-view <b>"names" "name" :key "Laraby"</b>)
+</pre>
+<p>
+See (<a href="#sym-create-ps-view">create-ps-view</a>)
+(<a href="#sym-ad-hoc-view">ad-hoc-view</a>)
+and <a href="#example-3">Example 3</a>
+</p>
+</blockquote>
+
+<hr/><h3><a name="conditions-reference">Conditions Defined by Clouchdb</a></h3>
+<blockquote>
+<a name="sym-attachment-missing"><b>attachment-missing</b></a> <br />
+<blockquote>
+  Error signaled when an attachment is requested which is not found to
+  exist in the associated document. This is a sub type of <a
+  href="#sym-document-error">doc-error</a>
+</blockquote>
+<a name="sym-clouchdb-error"><b>clouchdb-error</b></a> <br />
+<blockquote>
+  The base type of all errors signaled by clouchdb.
+</blockquote>
+<a name="sym-db-already-exists"><b>db-already-exists</b></a> <br />
+<blockquote>
+  Signaled when an attempt is made to create a database that already
+  exists. This is a sub type of <a
+  href="#sym-db-existential-error">db-existential-error</a>
+</blockquote>
+<a name="sym-db-does-not-exist"><b>db-does-not-exist</b></a> <br />
+<blockquote>
+  Signaled when an attempt is made to use a database that does not
+  exist. This is a sub type of <a
+  href="#sym-clouchdb-error">db-existential-error</a>
+</blockquote>
+<a name="sym-db-existential-error"><b>db-existential-error</b></a> <br />
+<blockquote>
+  The base type of all database management errors (as opposed to
+  document, view, etc.) This is a sub type of <a
+  href="#sym-clouchdb-error">clouchdb-error</a>
+</blockquote>
+<a name="sym-doc-error"><b>doc-error</b></a> <br />
+<blockquote>
+  The base type of all document related errors. This is a sub type of
+  <a href="#sym-clouchdb-error">clouchdb-error</a>
+</blockquote>
+<a name="sym-document-missing"><b>document-missing</b></a> <br />
+<blockquote>
+  Error signaled when an attempt is made to operate on an existing
+  document which does not exist. This is a sub type of <a
+  href="#sym-doc-error">doc-error</a>
+</blockquote>
+<a name="sym-id-missing"><b>id-missing</b></a> <br />
+<blockquote>
+  Error signaled when a required document ID has not been supplied.
+  This is a sub type of <a href="#sym-doc-error">doc-error</a>
+</blockquote>
+<a name="sym-id-or-revision-conflict"><b>id-or-revision-conflict</b></a> <br />
+<blockquote>
+  Signaled when an operation is performed on a document which does not
+  represent the current version of the document in the database, for
+  example, when that document has been modified by another
+  process. This is a sub type of <a
+  href="#sym-doc-error">doc-error</a>
+</blockquote>
+
+<a name="sym-illegal-database-name"><b>illegal-database-name</b></a> <br />
+<blockquote>
+  Signaled when an attempt is made to create a database with an
+  illegal name. This is a sub type of <a
+  href="#sym-db-existential-error">db-existential-error</a>
+</blockquote>
+
+<a name="sym-invalid-type"><b>invalid-type</b></a> <br />
+<blockquote>
+  Error raised when an invalid type was specified for a
+  parameter. This is a sub type of <a
+  href="#sym-clouchdb-error">clouchdb-error</a>
+</blockquote>
+
+</blockquote>
+
+<hr/>
+
+<h2><a name="symbols">Symbol Index</a></h2>
+
+<blockquote>
+<p>
+  <a href="#sym-ad-hoc-view">ad-hoc-view</a> <br />
+  <a href="#sym-add-attachment">add-attachment</a> <br />
+  <a href="#sym-all-docs-by-seq">all-docs-by-seq</a> <br />
+  <a href="#sym-as-deleted-document">as-deleted-document</a> <br />
+  <a href="#sym-as-field-name-string">as-field-name-string</a><br />
+  <a href="#sym-as-keyword-symbol">as-keyword-symbol</a><br />
+  <a href="#sym-attachment-list">attachment-list</a> <br />
+  <a href="#sym-attachment-missing">attachment-missing</a> <br />
+  <a href="#sym-attachment-name">attachment-name</a> <br />
+  <a href="#sym-bulk-document-update">bulk-document-update</a> <br />
+  <a href="#sym-clouchdb-error">clouchdb-error</a> <br />
+  <a href="#sym-changes">changes</a> <br />
+  <a href="#sym-compact-db">compact-db</a> <br />
+  <a href="#sym-copy-document">copy-document</a> <br />
+  <a href="#sym-couchdb">*couchdb*</a> <br />
+  <a href="#sym-couchdb-document-properties">couchdb-document-properties</a> <br />
+  <a href="#sym-create-db">create-db</a> <br />
+  <a href="#sym-create-document">create-document</a> <br />
+  <a href="#sym-create-ps-view">create-ps-view</a> <br />
+  <a href="#sym-create-temp-db">create-temp-db</a> <br />
+  <a href="#sym-db-already-exists">db-already-exists</a> <br />
+  <a href="#sym-db-does-not-exist">db-does-not-exist</a> <br />
+  <a href="#sym-db-existential-error">db-existential-error</a> <br />
+  <a href="#sym-delete-attachment">delete-attachment</a> <br />
+  <a href="#sym-delete-db">delete-db</a> <br />
+  <a href="#sym-delete-document">delete-document</a> <br />
+  <a href="#sym-delete-view">delete-view</a> <br />
+  <a href="#sym-doc-error">doc-error</a> <br />
+  <a href="#sym-document-id">document-id</a> <br />
+  <a href="#sym-document-missing">document-missing</a> <br />
+  <a href="#sym-document-properties">document-properties</a> <br />
+  <a href="#sym-document-property">document-property</a> <br />
+  <a href="#sym-document-revision">document-revision</a> <br />
+  <a href="#sym-document-to-json">document-to-json</a> <br />
+  <a href="#sym-encode-document">encode-document</a> <br />
+  <a href="#sym-get-all-documents">get-all-documents</a> <br />
+  <a href="#sym-get-attachment-name">get-attachment-name</a> <br />
+  <a href="#sym-get-attachment-stream">get-attachment-stream</a> <br />
+  <a href="#sym-get-couchdb-info">get-couchdb-info</a> <br />
+  <a href="#sym-get-db-info">get-db-info</a> <br />
+  <a href="#sym-get-document">get-document</a> <br />
+  <a href="#sym-get-uuids">get-uuids</a> <br />
+  <a href="#sym-id-missing">id-missing</a> <br />
+  <a href="#sym-id-or-revision-conflict">id-or-revision-conflict</a> <br />
+  <a href="#sym-illegal-database-name">illegal-database-name</a> <br />
+  <a href="#sym-invalid-input">invalid-input</a> <br />
+  <a href="#sym-invoke-view">invoke-view</a> <br />
+  <a href="#sym-json-to-document">json-to-document</a> <br />
+  <a href="#sym-list-dbs">list-dbs</a> <br />
+  <a href="#sym-make-db">make-db</a> <br />
+  <a href="#sym-post-document">post-document</a> <br />
+  <a href="#sym-ps-view">ps-view</a> <br />
+  <a href="#sym-put-document">put-document</a> <br />
+  <a href="#sym-query-document">query-document</a> <br />
+  <a href="#sym-replicate">replicate</a> <br />
+  <a href="#sym-save-attachment">save-attachment</a> <br />
+  <a href="#sym-set-connection">set-connection</a> <br />
+  <a href="#sym-set-document-property">set-document-property</a> <br />
+  <a href="#sym-with-attachment">with-attachment</a> <br />
+  <a href="#sym-with-connection">with-connection</a> <br />
+  <a href="#sym-with-temp-db">with-temp-db</a> <br />
+</p>
+</blockquote>
+
+<h2><a name="issues-and-bugs">Issues and Bugs</a></h2>
+
+<p>
+  CouchDb is a young database server, it is currently in development
+  and not yet feature complete nor are some aspects of its
+  functionality even fully designed or finalized yet. Clouchdb is a
+  new library supporting this database, and it too is still in
+  development. As a result, changes to and bugs in the Clouchdb API
+  should not be unexpected, though I do strive to minimise both.
+</p>
+
+<p>
+  With that in mind, any problems not outlined below should be brought
+  to the author's attention through
+  the <a href="#support">clouchdb-devel</a> email list.
+</p>
+
+<p>
+  Currently known issues:
+</p>
+<ul>
+
+  <li><b>??</b>
+  </li>
+
+</ul>
+
+<p>Back to <a href="http://common-lisp.net/">Common-lisp.net</a>.</p>
+
+<div class="check">
+  <a href="http://validator.w3.org/check/referer">Valid XHTML 1.0 Strict</a>
+</div>
+
+ <p>
+    <a href="http://validator.w3.org/check?uri=referer"><img
+        src="http://www.w3.org/Icons/valid-xhtml10"
+        alt="Valid XHTML 1.0 Strict" height="31" width="88" /></a>
+ </p>
+
+</body>
+</html>

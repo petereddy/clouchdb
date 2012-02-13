@@ -1,0 +1,130 @@
+
+0.0.14:
+  - Applied patch for basic-authorization provided by Knut Olav Bøhmer
+  - Updated ensure-db to use missing-db error message instead of re-checking for db existance
+  - Removed unused parameters from ensure-db
+  - Added 'user' and 'password' parameters to with-connection macro
+  - Fixed bug in save-attachment
+  - Export db-protocol in package.lisp
+  - Added create-target parmaeter to replicate
+  - Removed references to create-view in doc
+  - Added duplicate error handling to create-view
+  - Added changes function (incomplete)
+
+0.0.13:
+  - Applied ad-hoc-view patch from Marco
+  - Added basic authentication support
+  - Updated tests
+
+0.0.12: 
+  - Added missing conflicts keyword parameter to get-document, tests
+  - Added error handling in create-db for illegal database names
+  - Added get-uuids function and related doc
+  - Remembered to increment *couchdb-version* for the first time in a long time
+  - Made (document-property) and (setf (document-property)) accept a list of property names
+  - Made (set-document-property) accept multiple lists of property names
+  - Made (get-document) accept documents with :|_id| or :|id| properties
+  - Fixed (delete-document) to work more consistently with :if-missing
+
+0.0.11:
+
+  - Switched to using a structure to hold the database connection
+    information that was previously contained in special
+    variables. The structure is itself now a single special variable
+    called *db*
+
+  - Added support for stand-alone attachements
+
+  - Added get-couchdb-info for getting CouchDb server information,
+    previously this was available via get-db-info when no DB was
+    specified.
+
+  - Added database compaction support with the function compact-db
+
+  - Added replication support with the replicate function
+
+  - Added all-docs-by-seq function
+
+  - Changed delete-document to take a required parameter which is
+    either the document ID or the document, removed the keyword
+    parameters :id and :document.
+
+  - Updated various functions to use recently added CouchDb
+    parameters:
+
+    bulk-document-update:
+     - added all-or-nothing parameter
+
+        
+
+
+0.0.10:
+
+  - Views now use the new map/reduce/emit style JavaScript definitions
+    of CouchDb 0.8+.
+  - Added create-ps-view function and ps-view macro to help build the
+    new views
+  - Added document-update-fn and document-fetch-fn documentation.
+  - Added compact-db function
+
+0.0.9:
+
+  - View functions now work with complex key types, e.g.
+    (invoke-view "foo" "bar" :key '("kipple" "bark"))
+  - Updated docs to reflect change described above
+  - Fixed other doc inaccuracies having to do with cl-json/case
+    encoding related changes.
+
+0.0.8:
+
+  - Function set-document-property now operates non-destructively, be
+    sure existing code is using use function's result.
+  - Added function query-document to make it easier to extract the
+    interesting portions of complex documents. Inspired by xpath style
+    queries.
+  - Added hooks to intercept document fetching and updating/creating.
+
+0.0.7:
+  - Copied and modified cl-json encoding functions to better handle
+    conversion of lisp associative lists to json data types.
+  - Updated documentation to recommend using only keyword symbols for
+    field names. 
+  - Export 
+
+0.0.6:
+  - Finally fixed utf-8 encoding bug for document contents
+  - Revised document ID encoding to 1) Support utf-8 characters
+  properly, and 2) Encode spaces using %20 instead of +
+  - Updated documentation relating to document API
+
+0.0.5:
+  - Encode all URL parameters properly, this fixes issues reported by
+  Daniel Farina having to do with the inability to use leagal
+  characters in document IDs.
+  - Error handling for (post-document)
+
+0.0.4:
+
+  - Fixed ad-hoc-view and invoke-view functions so that they now use
+    all CouchDb view options
+  - Added generic keyword parameter to URL parameter translation code
+  - Changed default CouchDb port to IANA assigned 5984 
+  - Added more comments
+
+0.0.3:
+
+  - Changed 'scheme' parameter of set-connection to 'protocol'
+  - Changed if-exists key parameter to (delete-db) to if-missing
+  - Changed (delete-document) to accept :document or :id and optionally :revision 
+  - Added document-missing condition to exported symbols
+  - Added :report functions to some conditions
+  - Added documentation (doc/index.html) and style sheet
+  - Updated unit tests for API changes
+
+0.0.2:
+
+  - Fixed bulk document updates (bulk-document-update)
+
+0.0.1: 
+
+ - Initial release
