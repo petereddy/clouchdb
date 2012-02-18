@@ -30,7 +30,11 @@ Lift unit test framework.
 Installation
 ------------
 
-You can use ASDF-INSTALL to install Clouchdb:
+By far the easiest way to install this library is via the wonderful
+Quicklisp tool by Zach Beane, you can find Quicklisp at
+http://www.quicklisp.org/
+
+You should also be able to use ASDF-INSTALL to install Clouchdb:
 
   (asdf-install:install '#:clouchdb)
 
