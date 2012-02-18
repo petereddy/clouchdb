@@ -31,6 +31,7 @@
 (defvar *default-content-type* "application/octet-stream")
 (defvar *view-function-names* '(map reduce validate-doc-update))
 (defvar *debug-requests* nil)
+(defvar *temp-db-counter* 0 "")
 
 (defstruct (db (:constructor new-db))
   host port name protocol user password
@@ -81,6 +82,8 @@
     (:since . ((:name . "since") (:fn . value-as-string)))
     (:style . ((:name . "style") (:fn . keyword-to-http-param)))
     (:heartbeat . ((:name . "heartbeat") (:fn . value-as-string)))
+    (:timeout . ((:name . "timeout") (:fn . value-as-string)))
+    (:include-docs . ((:name . "include_docs") (:fn . true-if-true)))
     (:filter . ((:name . "filter") (:fn . identity))))
   "Parameters for the changes function.")
 
@@ -310,6 +313,17 @@ of the remaining parameters."
                (couchdb-host-url *couchdb*) "/"
 	       (apply #'concatenate 'string rest)))
 
+(defun json-stream-or-string-to-document (stream-or-string)
+  "Read a json document from eiter a stream or a string. If the source
+is a stream close the stream before returning. Return a document."
+  (cond ((streamp stream-or-string)
+         (with-open-stream (in stream-or-string)
+           (json-to-document (with-output-to-string (out)
+                               (loop for line = (read-line in nil)
+                                  while (and line (write-line line out)))))))
+        ((stringp stream-or-string)
+         (json-to-document stream-or-string))))
+
 (defmacro ensure-db (&body body)
   "Wrap request in code to check for errors due to non-existant data
 bases. This is necessary because in a document operation, CouchDb does
@@ -366,11 +380,22 @@ lower case string with any hyphens replaced by underscores:
 ':all-the-best' -> 'all_the_best'."
   (substitute #\_ #\- 
               (string-downcase 
-               (cond ((keywordp keyword-symbol) 
+               (cond ((keywordp keyword-symbol)
                       (as-field-name-string keyword-symbol))
-                     ((stringp keyword-symbol)
-                      keyword-symbol)
                      (t keyword-symbol)))))
+
+;; (defun keyword-to-http-param (keyword-symbol)
+;;   "Convert a keword symbol that may contain hyphen characters to a
+;; lower case string with any hyphens replaced by underscores:
+;; ':all-the-best' -> 'all_the_best'."
+;;   (substitute #\_ #\- 
+;;               (string-downcase 
+;;                (cond ((keywordp keyword-symbol)
+;;                       (as-field-name-string keyword-symbol))
+;;                      ((stringp keyword-symbol)
+;;                       keyword-symbol)
+;;                      (t keyword-symbol)))))
+
 
 (defun document-property (name doc)
   "Get the value associated with the document property or nil if there
@@ -616,6 +641,16 @@ host."
   (let ((*couchdb* db))
     (db-request "_all_dbs" :method :get)))
 
+(defun get-stats (&optional (db *couchdb*))
+  "Get database statistics overview."
+  (let ((*couchdb* db))
+    (db-request "_stats" :method :get)))
+
+(defun get-active-tasks (&optional (db *couchdb*))
+  "Get active tasks for database or nil."
+  (let ((*couchdb* db))
+    (db-request "_active_tasks" :method :get)))
+
 (defun create-db (&key (db *couchdb*) (if-exists :fail))
   "Create database. The db parameter may be either a string which is
 the name of the database to create or an instance of a db
@@ -627,8 +662,7 @@ database."
   (let ((*couchdb* (db-or-db-name db)))
     (multiple-value-bind (res status)
         (db-request (cat (url-encode (db-name *couchdb*)) "/")
-                    :method :put :content ""
-                    :basic-authorization (make-db-auth *couchdb*))
+                    :method :put :content "")
       (cond ((eq 201 status)
              res)
             ((equal "unauthorized" (document-property :|error| res))
@@ -730,36 +764,46 @@ database. Delete database before return."
        ,result)))
 
 (defun changes (&rest options &key (db *couchdb*) feed since style
-                heartbeat filter fn)
-  "Return the document change activity. The :feed keyword parameter
-value indicates how to poll for changes. Valid values for this
-parameter include :longpoll to block waiting for a single change
-response or :continuous to poll for changes indefinately.
+                heartbeat timeout filter notify-fn include-docs)
+  "Get document change activity from current database or database
+specified in db parameter. The :feed keyword parameter value indicates
+how to poll for changes. Valid values for this parameter
+include :longpoll to block waiting for a single change
+response, :continuous to poll for changes indefinately, or :normal to
+not poll (the default) and instead return a document containing
+changes. If specified, the :style keyword parameter may be either
+:main-only (the default) or :all-docs for more revision information.
 
-The :style keyword parameter should either be :main-only (the default)
-or :all-docs for more revision information."
-  (declare (ignore since style heartbeat))
-  (let ((*couchdb* (db-or-db-name db)))
+If specified, the notify-fn will be called as each change notification
+is recieved from the server. The notify-fn should return nil to signal
+that it no longer wishes to receive change notificaitons. At that
+point the stream will be closed and the changes function will return.
+
+If :longpoll or :continuous is specified as the feed parameter but no
+notify-fn is provided, this function will return the feed stream. It
+is the caller's responsibility to close the stream.
+"
+  (declare (ignore since style timeout heartbeat include-docs))
+  (let ((*couchdb* (db-or-db-name db))
+        (want-stream (find feed '(:continuous :longpoll))))
     (ensure-db ()
          (multiple-value-bind (res status)
              (db-request (cat (url-encode (db-name *couchdb*)) "/_changes")
                          :parameters (transform-params options *changes-options*)
-                         :want-stream feed :method :get)
+                         :want-stream want-stream :method :get)
            (cond ((not (equal status 200))
-                  (let ((rdoc (if (stringp res) (json-to-document res) res)))
-                    (cond ((equal "invalid design doc" (document-property :|reason| rdoc))
+                  (let ((doc (json-stream-or-string-to-document res)))
+                    (cond ((equal "invalid design doc" (document-property :|reason| doc))
                            (error 'invalid-design-doc
-                                  :text res :id filter
-                                  :uri (make-uri (db-name *couchdb*) "/" filter)
-                                  :reason (document-property :|reason| rdoc))))))
-                 ((and fn (streamp res))
-                  (loop for line = (read-line res nil :eof)
-                     while (and line
-                                (not (equal line :eof))
-                                (funcall fn (json-to-document line)))
-                     finally (close res)))
-                 ((not fn)
-                  res))))))
+                                  :id filter :uri (make-uri (db-name *couchdb*) "/" filter)
+                                  :reason (document-property :|reason| doc))))))
+                 ((and notify-fn (streamp res))
+                  (with-open-stream (in res)
+                    (loop for line = (read-line res nil :eof)
+                       while (and line
+                                  (not (equal line :eof))
+                                  (funcall notify-fn (json-to-document line))))))
+                 (t res))))))
 
 (defun replicate (target &key (source *couchdb*) (create-target nil))
   "Replicate current database to target, or source to target if source
@@ -779,8 +823,50 @@ be created automatically, as of CouchDb version 0.11."
                        (if create-target "\"create_target\":true") "}"))))
 
 ;;
+;; Users and Authentication
+;;
+
+(defun add-admin (name password &key (db *couchdb*))
+  "Add an admin user."
+  (let ((*couchdb* db))
+    (db-request (cat "_config/admins/" name)
+                :method :put
+                :content (doublequote password))))
+
+(defun get-session (&optional (db *couchdb*))
+  "Get cookie based login user information."
+  (let ((*couchdb* db))
+    (db-request (cat "_session")
+                :method :get)))
+
+(defun set-session (&optional (db *couchdb*))
+  "Do cookie based login."
+  (let ((*couchdb* db))
+    (db-request (cat "_session")
+                :method :post)))
+
+(defun logout-session (&optional (db *couchdb*))
+  "Logout cookie based session."
+  (let ((*couchdb* db))
+    (db-request (cat "_session")
+                :method :delete)))
+
+;;
 ;; _config API
 ;;
+
+(defun get-config (&key (db *couchdb*) section)
+  "Get database configuration."
+  (let ((*couchdb* db))
+    (db-request (cat "_config" (if section (cat "/" section)))
+                :method :get)))
+
+(defun set-config (section value &key (db *couchdb*))
+  "Set database configuration value."
+  (let ((*couchdb* db))
+    (db-request (cat "_config" "/" section)
+                :method :put
+                :content (document-to-json value))))
 
 ;; (defun get-config (key)
 ;;   ""
@@ -818,12 +904,13 @@ be created automatically, as of CouchDb version 0.11."
 ;; CouchDB Document Management API
 ;;
 
-(defun get-uuids (&key (count 1))
+(defun get-uuids (&key (count 1) (db *couchdb*))
   "Returns one or more new UUID from the current database."
-  (values (db-request "_uuids" 
-                     :parameters 
-                     (list (cons "count" (value-as-string count)))
-                     :method :get)))
+  (let ((*couchdb* db))
+    (values (db-request "_uuids" 
+                        :parameters 
+                        (list (cons "count" (value-as-string count)))
+                        :method :get))))
 
 (defun get-all-documents (&rest options &key key keys start-key
                         start-key-docid end-key end-key-docid limit
@@ -873,13 +960,15 @@ one."
             (cond ((eq if-missing :ignore)
                    nil)
                   ((and if-missing-p (not (eq if-missing :error)))
-                   if-missing)
+                   (if (functionp if-missing)
+                       (funcall if-missing doc-id)
+                       if-missing))
                   (t (error 'document-missing :id doc-id))))
 	  (document-update-notify 
            (db-document-fetch-fn *couchdb*) res)))))
 		      
 (defun encode-file (file)
-  ""
+  "Encode a file in the format suitable for CouchDb attachments"
   (with-output-to-string (out)
     (with-open-file (in file)
       (let ((data (make-array (file-length in) :element-type '(unsigned-byte 8))))
@@ -888,6 +977,8 @@ one."
           (s-base64:encode-base64-bytes data out nil))))))
 
 (defun encode-attachments (attachments)
+  "Encode the list of attachements, return them in an _attachments
+document fragment."
   (let ((encoded))
     (when attachments
       (dolist (a attachments)
@@ -924,7 +1015,7 @@ document, since the latter would generate a CouchDb error."
     (let ((res (ensure-db () 
                  (db-request (cat (url-encode (db-name *couchdb*)) "/" 
                                   (url-encode (if id id current-id)))
-                             :content-type "text/javascript"
+                             :content-type "application/json"
                              :external-format-out +utf-8+
                              :content-length nil
                              :content (document-to-json 
@@ -948,7 +1039,7 @@ new document and assign a new ID. Therefore this is an easy method for
 the :ID property."
   (let ((res (ensure-db ()
                (db-request (cat (url-encode (db-name *couchdb*)) "/")
-                           :content-type "text/javascript"
+                           :content-type "application/json"
                            :external-format-out +utf-8+
                            :content-length nil
                            :method :post
@@ -1001,7 +1092,7 @@ ID."
                                               ,(if rev
                                                    (cat dest-id "?rev=" rev) 
                                                    dest-id))))))
- (when (document-property :|error| res)
+        (when (document-property :|error| res)
           (error (if (equal "conflict" (document-property :|error| res))
                      'id-or-revision-conflict 
                      'doc-error)
@@ -1247,6 +1338,15 @@ closed after execution of the statements in the body."
        (if ,stream (close ,stream)))))
 
 ;;
+;; Design Document Functions
+
+(defun ensure-design-doc (id)
+  "Return specified design document, creating it if it does not already exist."
+  (get-document (cat "_design/" id) 
+                :if-missing #'(lambda (id) 
+                                (create-document nil :id id))))
+
+;;
 ;; Views API
 ;;
 
@@ -1350,6 +1450,17 @@ closed after execution of the statements in the body."
        :ignore-nil t) out)
      (write-string "}" out)))
 
+(defmacro defpsfun (&body body)
+  "Define a parenscript function in the object format used by
+CouchDb. Specifically, a property name associated with a
+lambda. E.g.:  {'foo' : function () {...}}"
+  `(ps-function (defun ,@body)))
+
+;; (add-ps-lists 
+;;  "foo" 
+;;  (defpsfun foo (d r) (return (* 7 d.type)))
+;;  (defpsfun bar (d r) (return d.size)))
+
 (defun delete-view (id &key revision if-missing)
   "Delete identified view document"
   (ensure-db ()
@@ -1391,29 +1502,30 @@ inconsistency."
                   :reason (document-property :|reason| res))))))
 
 (defun view-cleanup ()
-  "Compact named view"
+  "Clean up old view data"
   (view-util "/_view_cleanup"))
 
 (defun compact-view (view-name)
   "Compact named view"
   (view-util (cat "/_compact/" view-name)))
 
-(defun add-ps-fns (id type &rest list-defs)
-  "Add lists in list-defs to document identified by id. If the
-document does not exist, create it. If any list function definitions
-already exist in the document, update them."
-  (let* ((list-id (cat "_design/" id))
-         (doc (get-document list-id :if-missing :ignore)))
+(defun add-functions (design-doc-id type &rest list-defs)
+  "Add lists in list-defs to design document identified by
+design-doc-id. If the document does not exist, create it. If any list
+function definitions already exist in the document, update them."
+  (let* ((doc-id (cat "_design/" design-doc-id))
+         (doc (get-document doc-id :if-missing :ignore)))
     (dolist (list-def (mapcar #'json-to-document list-defs))
+      (format t "list-def: ~a~%" list-def)
       (setf doc (setf (document-property (list type (caar list-def)) doc)
                       (cdar list-def))))
-    (put-document doc :id list-id)))
+    (put-document doc :id doc-id)))
 
-(defun add-ps-lists (id &rest list-defs)
+(defun add-lists-fns (id &rest defs)
   "Add CouchDb lists in list-defs to document identified by id. If the
 document does not exist, create it. If any list function definitions
 already exist in the document, update them."
-  (apply #'add-ps-fns id :|lists| list-defs))
+  (apply #'add-functions id :|lists| defs))
 
 (defun invoke-list (doc-id list-id)
   ""
@@ -1428,3 +1540,23 @@ already exist in the document, update them."
     (when stream
       (close stream))
     body))
+
+;;
+;; Shows
+;;
+
+(defun add-shows-fns (id &rest defs)
+  "Add CouchDb lists in list-defs to document identified by id. If the
+document does not exist, create it. If any list function definitions
+already exist in the document, update them."
+  (apply #'add-functions id :|shows| defs))
+
+
+;(defmacro def-show-fn (name &body body)
+;  (add-shows-fns
+
+;(add-shows-fns 
+; "foo")
+;(defpsfun post (doc req)
+          
+          

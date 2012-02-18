@@ -73,9 +73,11 @@
    :document-revision
    :document-to-json
    :encode-document
+   :get-active-tasks
    :get-all-documents
    :get-attachment-name
    :get-attachment-stream
+   :get-config
    :get-couchdb-info
    :get-db-info
    :get-document
@@ -86,6 +88,7 @@
    :invalid-input
    :invoke-view
    :json-to-document
+   :json-string-or-stream-to-document
    :list-dbs
    :make-db
    :post-document

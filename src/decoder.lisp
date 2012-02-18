@@ -193,6 +193,7 @@
                     :char-converter #'(lambda (ch stream)
                                         (if (char= ch #\\)
                                             (if (char= #\u (peek-char nil stream))
-                                                (code-char (parse-integer (read-n-chars stream 5) :start 1 :radix 16))
+                                                (code-char (parse-integer (read-n-chars stream 5) 
+                                                                          :start 1 :radix 16))
                                                 (json-escaped-char-to-lisp (read-char stream)))
                                             ch))))

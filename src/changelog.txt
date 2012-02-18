@@ -1,6 +1,6 @@
 
 0.0.14:
-  - Applied patch for basic-authorization provided by Knut Olav Bøhmer
+  - Applied patch for basic-authorization provided by Knut Olav Bøhmer (thanks!)
   - Updated ensure-db to use missing-db error message instead of re-checking for db existance
   - Removed unused parameters from ensure-db
   - Added 'user' and 'password' parameters to with-connection macro
@@ -10,6 +10,11 @@
   - Removed references to create-view in doc
   - Added duplicate error handling to create-view
   - Added changes function (incomplete)
+  - Added get-config
+  - Added db option to get-uuids
+  - Added get-stats
+  - Added get-active-tasks
+  - Added json-stream-or-string-to-document utility function
 
 0.0.13:
   - Applied ad-hoc-view patch from Marco
