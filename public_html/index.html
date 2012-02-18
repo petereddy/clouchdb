@@ -528,15 +528,83 @@ CLOUCHDB-USER> <b>(dolist (at (attachment-list "animals"))
 </blockquote>
 
 <p>[Function]<br />
-<a name="sym-changes"><b>changes</b></a> &amp;key db
+<a name="sym-changes"><b>changes</b></a> &amp;key db feed since style heartbeat filter notify-fn include-docs
 </p>
 <blockquote>
 <p>
-  Return the document change activity for the current database or a
-  specific database specified with the <b>:db</b> keyword
-  parameter. The database can be specified as a string for a database
-  in the current CouchDb host, or as a db structure to specify a
-  database on a host other than the current one specified in *couchdb*.
+  Return document change activity information for a database. 
+  <table>
+    <tr>
+      <th>Parameter</th>
+      <th>Description</th>
+    </tr>
+    <tr>
+      <td>:db</td>
+      <td>
+        The target database or database host information, specified
+        either as a string or a db structure. Defaults to current
+        database in <strong>*couchdb*</strong>.
+      </td>
+    </tr>
+    <tr>
+      <td>:feed</td>
+      <td>
+        Either <strong>:normal</strong> to not poll (the default),
+        <strong>:longpoll</strong> to block waiting for a single
+        response from the server, or <strong>:continuous</strong> to
+        poll for changes indefinately.
+      </td>
+    </tr>
+    <tr>
+      <td>:since</td>
+      <td>
+      </td>
+    </tr>
+    <tr>
+      <td>:heartbeat</td>
+      <td>
+        The period, in milliseconds, after which a nil result is
+        sent. Applies only to <strong>:longpoll</strong> and
+        <strong>:continuous</strong> feed options. Overrides any
+        timeout value.
+      </td>
+    </tr>
+    <tr>
+      <td>:timeout</td>
+      <td>
+        Time, in milliseconds, after which the database will send an
+        empty line. Applies only to <strong>:longpoll</strong> or
+        <strong>:continuous</strong> feed options.
+      </td>
+    </tr>
+    <tr>
+      <td>:filter</td>
+      <td>
+      </td>
+    </tr>
+    <tr>
+      <td>:notify-fn</td>
+      <td>
+        A function to call as change notifications arrive. If
+        specified, the call to (changes) will block and the notify-fn
+        function will be called as each change notification
+        arrives. The function should take one parameter, which will be
+        the change notification document or nil (when :heartbeat is
+        specified). The function should return true to continue to
+        receive change notifications or false to cancel receipt of
+        change notifications. When the notification function returns
+        false the open stream to the CouchDb server is closed and the
+        call to (changes) will return.
+      </td>
+    </tr>
+    <tr>
+      <td>:include-docs</td>
+      <td>
+        If true, include the associated document with each
+        result. (CouchDb version 0.11+)
+      </td>
+    </tr>
+  </table>
 </p>
 Example:
 </p>
@@ -551,25 +619,25 @@ Example:
    (:|changes| ((:|rev| . "1-3525a1d974ba13a34d26e305116feab2")))))
  (:|last_seq| . 5))
 
-;; Specify database
-(changes :db "example")
-<b>=></b> 
-((:|results|
-  ((:|seq| . 4) (:|id| . "_design/example")
-   (:|changes| ((:|rev| . "1-f83b5f3e154eb3c0ba2d721ad53211b3"))))
-  ((:|seq| . 5) (:|id| . "_design/toast")
-   (:|changes| ((:|rev| . "1-3525a1d974ba13a34d26e305116feab2")))))
- (:|last_seq| . 5))
+;; Define function to be called when changes occur
+(defun handle-change (change) 
+  (format t "got change: ~A~%" change) 
+  ;; return true to continue to receive change notifications
+  t)
 
-;; Specify database and host
-(changes :db (make-db :name "example" :host "somehost"))
-<b>=></b> 
-((:|results|
-  ((:|seq| . 4) (:|id| . "_design/example")
-   (:|changes| ((:|rev| . "1-f83b5f3e154eb3c0ba2d721ad53211b3"))))
-  ((:|seq| . 5) (:|id| . "_design/toast")
-   (:|changes| ((:|rev| . "1-3525a1d974ba13a34d26e305116feab2")))))
- (:|last_seq| . 5))
+(changes :feed :continuous :notify-fn #'handle-change :heartbeat 1000)
+
+got change: ((seq . 4) (id . _design/example)
+             (changes ((rev . 1-f83b5f3e154eb3c0ba2d721ad53211b3))))
+got change: ((seq . 5) (id . _design/toast)
+             (changes ((rev . 1-3525a1d974ba13a34d26e305116feab2))))
+got change: ((seq . 6) (id . biking)
+             (changes ((rev . 1-7e2d4e10305a1b9cfc0ae5bd40a1b301))))
+got change: ((seq . 7) (id . bought-a-cat)
+             (changes ((rev . 1-8ea27c5ff15247402947864f1bafc245))))
+got change: NIL
+got change: NIL
+got change: NIL
 </pre>
 </blockquote>
 
@@ -748,6 +816,81 @@ Example:
 <b>=></b> ("default" "example1" "example2" "example3")
 </pre>
 </blockquote>
+
+<p>[Function]<br />
+<a name="sym-get-active-tasks"><b>get-active-tasks</b></a> &optional db
+</p>
+<blockquote>
+  <p>
+    Get database statistics overview
+  </p>
+  <table>
+    <tr>
+      <th>Parameter</th>
+      <th>Description</th>
+    </tr>
+    <tr>
+      <td>db</td>
+      <td>
+        The target database or database host information specified as
+        a db structure. Defaults to current database in
+        <strong>*couchdb*</strong>.
+      </td>
+    </tr>
+  </table>
+</blockquote>
+
+
+<p>[Function]<br />
+<a name="sym-get-config"><b>get-config</b></a> &key db section
+</p>
+<blockquote>
+  <p>
+    Get configuration data
+  </p>
+  <table>
+    <tr>
+      <th>Parameter</th>
+      <th>Description</th>
+    </tr>
+    <tr>
+      <td>:db</td>
+      <td>
+        The target database or database host information specified as
+        a db structure. Defaults to current database in
+        <strong>*couchdb*</strong>.
+      </td>
+      <td>:section</td>
+      <td>
+        The configuration section
+      </td>
+    </tr>
+  </table>
+</blockquote>
+
+<p>[Function]<br />
+<a name="sym-get-stats"><b>get-stats</b></a> &optional db
+</p>
+<blockquote>
+  <p>
+    Get database statistics overview
+  </p>
+  <table>
+    <tr>
+      <th>Parameter</th>
+      <th>Description</th>
+    </tr>
+    <tr>
+      <td>db</td>
+      <td>
+        The target database or database host information specified as
+        a db structure. Defaults to current database in
+        <strong>*couchdb*</strong>.
+      </td>
+    </tr>
+  </table>
+</blockquote>
+
 
 <p>[Function]<br /> <a name="sym-make-db"><b>make-db</b></a> &key (db
 *couchdb*) host port name protocol user password document-fetch-fn
@@ -1191,6 +1334,31 @@ id
   function simply calls (<a href="#sym-put-document">put-document</a>)
   if an ID is specified, otherwise it calls
   (<a href="#sym-post-document">post-document</a>).
+  <table>
+    <tr>
+      <th>Parameter</th>
+      <th>Description</th>
+    </tr>
+    <tr>
+      <td>doc</td>
+      <td>
+        The document contents or nil to create empty document
+      </td>
+    </tr>
+    <tr>
+      <td>:id</td>
+      <td>
+        The ID for the new document. If not specified, CouchDb will
+        provide an ID value.
+      </td>
+    </tr>
+    <tr>
+      <td>:attachments</td>
+      <td>
+        One or more document attachments
+      </td>
+    </tr>
+  </table>
 </p>
 <p>
 Example:
@@ -1346,13 +1514,7 @@ in reverse order.
 revisions revision-info if-missing conflicts</p>
 <blockquote>
 <p>
-  Get document by <b>id</b>. If <b>revision</b> is specified attempts
-  to retrieve specified revision of document. If <b>revisions</b> is
-  non-nil, returns brief revision information for identified
-  document. If <b>revision-info</b> is non-nil, returns more detailed
-  revision information for document. The revision, revisions, and
-  revision-info parameters are mutually exclusive. If <b>conflicts</b>
-  is true, return document replication conflicts if they exist.
+  Get document by <b>id</b>.
 </p>
 <p>
   If the specified document is not found in the database this function
@@ -1364,6 +1526,53 @@ revisions revision-info if-missing conflicts</p>
   build version control type systems becuase older revisions will be
   deleted automatically when no longer needed by the database.
 </p>
+  <table>
+    <tr>
+      <th>Parameter</th>
+      <th>Description</th>
+    </tr>
+    <tr>
+      <td>id</td>
+      <td>
+        The document ID
+      </td>
+    </tr>
+    <tr>
+      <td>:revision</td>
+      <td>
+        The optional document revision. If not specified, returns the
+        most recent revision.
+      </td>
+    </tr>
+    <tr>
+      <td>:conflicts</td>
+      <td>
+        If true, return any existing replication conflicts for the
+        document.
+      </td>
+    </tr>
+    <tr>
+      <td>:revisions</td>
+      <td>
+        If non-nil, return brief revision information for the document.
+      </td>
+    </tr>
+    <tr>
+      <td>:revision-info</td>
+      <td>
+        If non-nil, returned document will contain detailed document
+        revision information.
+      </td>
+    </tr>
+    <tr>
+      <td>:if-missing</td>
+      <td>
+        If the specified document does not exist, return the value
+        specified instead. If the value is a function pointer, call
+        the function with the ID of the missing document.
+      </td>
+    </tr>
+  </table>
 </blockquote>
 
 <p>[Function]<br />
@@ -1371,11 +1580,41 @@ revisions revision-info if-missing conflicts</p>
 </p>
 <blockquote>
   <p>
-    Get UUIDs from the datbase. By default returns one, but the
-    <b>count</b> parameter can be used to specifiy the number of UUIDs
-    to return. Note that the database does not guarantee that the
-    UUIDs returned are not already used in the database.
+    Get one or more UUIDs from the datbase. Note that the database
+    does not guarantee that the UUIDs returned are not already used in
+    the database.
   </p>
+  <table>
+    <tr>
+      <th>Parameter</th>
+      <th>Description</th>
+    </tr>
+    <tr>
+      <td>:db</td>
+      <td>
+        The target database or database host information, specified
+        either as a string or a db structure. Defaults to current
+        database in <strong>*couchdb*</strong>.
+      </td>
+    </tr>
+    <tr>
+      <td>:count</td>
+      <td>
+        The number of UUIDS to return. Default is 1
+      </td>
+    </tr>
+  </table>
+  <p>
+    Example:
+  </p>
+  <pre class="code">
+    ;; Create a document, let server assign an ID
+    (get-uuids :count 3)
+
+    <b>=></b>((:|uuids| "ff02503bc937206fa3aec576b0378fc0"
+        "84b78cb82667856025929bfe30168ea3" "2c9026f46d8db4f8cc669f91c501c265"
+        "289f477p587e1775a5f3f6e55cb5b76f0" "d28f7a78268d8411b53bdf4bb4d6b9f9"))
+  </pre>
 </blockquote>
 
 <p>[Function]<br />
@@ -2242,12 +2481,15 @@ and <a href="#example-3">Example 3</a>
   <a href="#sym-document-revision">document-revision</a> <br />
   <a href="#sym-document-to-json">document-to-json</a> <br />
   <a href="#sym-encode-document">encode-document</a> <br />
+  <a href="#sym-get-active-tasks">get-active-tasks</a> <br />
   <a href="#sym-get-all-documents">get-all-documents</a> <br />
   <a href="#sym-get-attachment-name">get-attachment-name</a> <br />
   <a href="#sym-get-attachment-stream">get-attachment-stream</a> <br />
+  <a href="#sym-get-config">get-config</a> <br />
   <a href="#sym-get-couchdb-info">get-couchdb-info</a> <br />
   <a href="#sym-get-db-info">get-db-info</a> <br />
   <a href="#sym-get-document">get-document</a> <br />
+  <a href="#sym-get-stats">get-stats</a> <br />
   <a href="#sym-get-uuids">get-uuids</a> <br />
   <a href="#sym-id-missing">id-missing</a> <br />
   <a href="#sym-id-or-revision-conflict">id-or-revision-conflict</a> <br />
