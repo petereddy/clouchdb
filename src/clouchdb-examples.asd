@@ -1,4 +1,4 @@
-;;; -*- Mode: LISP; Syntax: COMMON-LISP; Package: CL-USER; Base: 10 -*-
+;;; -*- Mode: LISP; Syntax: COMMON-LISP; Package: CLOUCHDB-EXAMPLES; Base: 10 -*-
 
 ;;; Copyright (c) 2007 Peter Eddy. All rights reserved.
 

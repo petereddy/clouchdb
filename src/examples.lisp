@@ -38,7 +38,7 @@
 that document and change a property in it, then update it in the
 database."
   ;; Do everything in the context of a database named "example1"
-  (with-connection (:db-name "example1")
+  (with-connection (:name "example1")
     ;; Create the "example1" database, if it already exists, delete it
     ;; and recreate it
     (create-db :if-exists :recreate)
@@ -65,7 +65,7 @@ database."
 structures, create a view based on a field common to all
 documents (the 'tags' field), and then query those documents using the
 view and print the results."
-  (with-connection (:db-name "example2")
+  (with-connection (:name "example2")
     ;; (Re)create database "example2"
     (create-db :if-exists :recreate)
     ;; A simple example document using an auto-generated ID supplied
@@ -119,7 +119,7 @@ view and print the results."
   "Demonstrate the use of (query-document). Create a database,
 populate it with some documents representing countries,
 use (query-document) to operate on this data."
-  (with-connection (:db-name "example3")
+  (with-connection (:name "example3")
     (create-db :if-exists :recreate)
     (create-document '((:name . "Czech Republic")
 		       (:tags . ("country" "european"))

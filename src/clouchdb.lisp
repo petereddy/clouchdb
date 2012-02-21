@@ -781,8 +781,7 @@ point the stream will be closed and the changes function will return.
 
 If :longpoll or :continuous is specified as the feed parameter but no
 notify-fn is provided, this function will return the feed stream. It
-is the caller's responsibility to close the stream.
-"
+is the caller's responsibility to close the stream."
   (declare (ignore since style timeout heartbeat include-docs))
   (let ((*couchdb* (db-or-db-name db))
         (want-stream (find feed '(:continuous :longpoll))))
@@ -1558,5 +1557,3 @@ already exist in the document, update them."
 ;(add-shows-fns 
 ; "foo")
 ;(defpsfun post (doc req)
-          
-          
