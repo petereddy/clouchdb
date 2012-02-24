@@ -554,8 +554,7 @@ document or null."
 (defun db-request (uri &rest args &key &allow-other-keys)
   "Used by most Clouchdb APIs to make the actual REST request."
   (let ((*text-content-types* *text-types*))
-    (multiple-value-bind (body status headers uri stream must-close
-                               reason-phrase)
+    (multiple-value-bind (body status headers uri stream must-close reason-phrase)
         (apply #'drakma:http-request (make-uri uri)
                `(,@args :basic-authorization
                         ,(when (db-user *couchdb*)
@@ -720,7 +719,10 @@ supplied. The db parameter, if supplied, is either a local database
 name string or a db struct."
   (let ((*couchdb* (db-or-db-name db)))
     (ensure-db ()
-      (db-request (cat (db-name *couchdb*) "/_compact") :method :post))))
+      (db-request (cat (db-name *couchdb*) "/_compact") 
+                  :method :post
+                  :content-type "application/json"
+                  :content ""))))
 
 (defun get-couchdb-info (&key (db *couchdb*))
   "Get information from the couchdb server."
