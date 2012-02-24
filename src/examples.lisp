@@ -197,14 +197,20 @@ use (query-document) to operate on this data."
     ;;
     ;; This will produce the following output:
     ;;
-    ;; Country: turkey, EU accession: NIL
-    ;; Country: italy, EU accession: 1957-03-17
-    ;; Country: france, EU accession: 1957-03-25
-    ;; Country: czechrepublic, EU accession: 2004-05-01
+    ;; Country: Turkey, President: Abdulla Gül, EU accession: NIL
+    ;; Country: Italy, President: Giorgio Napolitano, EU accession: 1957-03-17
+    ;; Country: France, President: Nicolas Sarkozy, EU accession: 1957-03-25
+    ;; Country: Czech Republic, President: Václav Klaus, EU accession: 2004-05-01
     ;;
-    (dolist (country (query-document '(:|rows| :|id|) (get-all-documents)))
-      (format t "Country: ~a, EU accession: ~a~%" country
-              (car (query-document '(:** :eu-accession) (get-document country)))))
+    (dolist (doc-id (query-document '(:|rows| :|id|) (get-all-documents)))
+      (let ((country (get-document doc-id)))
+        (format t "Country: ~a, President: ~a, EU accession: ~a~%" 
+                ;; Retrieve a top level property
+                (document-property :name country)
+                ;; Retrieve a property at a specific path
+                (document-property '(:demographics :president) country)
+                ;; Retrieve a property anywhere in the document
+                (car (query-document '(:** :eu-accession) country)))))
     ;;
     ;; It's possible to use a function in the query argument list of
     ;; (query-document). The following example will return a list of
