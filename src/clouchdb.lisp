@@ -1135,7 +1135,7 @@ operation."
   (ensure-db () 
     (db-request (cat (url-encode (db-name *couchdb*)) "/_bulk_docs")
 		:method :post
-                :content-type "text/javascript"
+                :content-type "application/json"
                 :external-format-out +utf-8+
                 :content-length nil
 		:content 
