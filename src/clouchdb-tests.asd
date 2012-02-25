@@ -30,6 +30,5 @@
 (in-package :clouchdb-tests-asd)
 
 (asdf:defsystem :clouchdb-tests
-  :depends-on (:parenscript :clouchdb :lift)
+  :depends-on (:parenscript :clouchdb :stefil)
   :components ((:file "tests")))
-
