@@ -91,10 +91,30 @@ Style License</a> for maximum agreeableness.
 <ul>
   <li><a href="http://www.weitz.de/drakma/">Drakma</a></li>
   <li><a href="http://www.cliki.net/Parenscript/">Parenscript</a></li>
-  <li><a href="http://www.cliki.net/LIFT/">LIFT</a> testing framework</li>
-  <li>An available <a href="http://couchdb.org">CouchDb</a> server,
-  minimum supported version is 0.9.1</li>
+  <li>
+    A recent version of the <a href="http://couchdb.org">CouchDb</a>
+    server. The current version of the library is tested on CouchDb
+    1.1.1.
+  </li>
 </ul>
+
+<h3>Optional Libraries:</h3>
+<ul>
+  <li>The <a href="http://dwim.hu/project/hu.dwim.stefil">Stefil Test
+  Framework</a>. Required only if you wish to run the unit tests.
+</ul>
+
+<h3>Quicklisp Install</h3>
+
+<p>
+  I highly recommend
+  using <a href="http://www.quicklisp.org">Quicklisp</a> for easy,
+  trouble-free installation
+</p>
+
+<pre class="code">
+(ql:quickload "clouchdb")  
+</pre>
 
 <h3>ASDF Install</h3>
 
@@ -119,33 +139,31 @@ and load clouchdb using ASDF-INSTALL:
 
 <p>
   The clouchdb distribution comes with a unit test suite which uses
-  the LIFT testing framework. To run the tests follow the following
-  steps:
+  the <a href="http://dwim.hu/project/hu.dwim.stefil">Stefil test
+  framework</a>. To run the tests follow the following steps:
 </p>
 
 <pre class="code">
-(asdf:oos 'asdf:load-op '#:clouchdb-tests)
+;; Install the Stefil test framework. This example installs Stefil using Quicklisp
+(ql:quickload "stefil")
+
+(load "tests.lisp")
 (in-package :clouchdb-tests)
 
 ;; The following is only necessary if the couchdb server is not on 
 ;; localhost, or authenticaion is enabled, respectively.
 (set-connection :host "hostname" :user "username" :password "password")
 
-(run-all-tests)
+(test-all)
 </pre>
 
 <h3>Examples</h3>
 
 <p>
-  The distribution also includes an examples package:
-</p>
-
-<pre class="code">
-(asdf:oos 'asdf:load-op '#:clouchdb-examples)
-(in-package :clouchdb-examples)
-</pre>
-<p>
-  The file examples.lisp contains comments describing each example in detail.
+  The distribution also includes the clouchdb examples file
+  <a href="https://github.com/petereddy/clouchdb/blob/master/src/examples.lisp">examples.lisp</a>
+  which contains ready-to-run examples and comments describing each
+  example in detail.
 </p>
 
 <h3>Github Source</h3>
@@ -2530,27 +2548,12 @@ and <a href="#example-3">Example 3</a>
 
 <h2><a name="issues-and-bugs">Issues and Bugs</a></h2>
 
-<p>
-  CouchDb is a young database server, it is currently in development
-  and not yet feature complete nor are some aspects of its
-  functionality even fully designed or finalized yet. Clouchdb is a
-  new library supporting this database, and it too is still in
-  development. As a result, changes to and bugs in the Clouchdb API
-  should not be unexpected, though I do strive to minimise both.
-</p>
-
-<p>
-  With that in mind, any problems not outlined below should be brought
-  to the author's attention through
-  the <a href="#support">clouchdb-devel</a> email list.
-</p>
-
-<p>
-  Currently known issues:
-</p>
 <ul>
 
-  <li><b>??</b>
+  <li>
+    Some of the more recent features of CouchDb may not yet be
+    supported by this library. If you encounter a missing feature
+    please let me know or, better yet, submit a patch.
   </li>
 
 </ul>
