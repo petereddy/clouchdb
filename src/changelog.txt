@@ -1,4 +1,8 @@
 
+0.0.15:
+  - Fixes and changes to support CouchDb v1.1.1
+  - Moved to the Stefil test framework
+
 0.0.14:
   - Applied patch for basic-authorization provided by Knut Olav Bøhmer (thanks!)
   - Updated ensure-db to use missing-db error message instead of re-checking for db existance
