@@ -919,30 +919,20 @@ key."
 ;;
 
 (defsuite* clouchdb-view-tests)
-  ;; ()
-  ;; (:dynamic-variables
-  ;;  (*couchdb* (make-db :db *couchdb*)))
-  ;; (:setup
-  ;;  (progn
-  ;;    (set-connection :db (create-temp-db))
-  ;;    (create-test-documents *people* :id-field :name)))
-  ;; (:teardown 
-  ;;  (progn 
-  ;;    (delete-db))))
 
 ;; Create an ad-hoc view and verify the returned count
-;; (deftest ad-hoc-view-result ()
-;;   (with-temp-db
-;;     (create-test-documents *people* :id-field :name)
-;;     (is (equal (length (contains-property *people* :name :pval "marc"))
-;;                (document-property
-;;                 :|total_rows|
-;;                 (ad-hoc-view 
-;;                  (ps (lambda (doc)
-;;                        (with-slots (*NAME*) doc
-;;                          (if (= *NAME* "marc")
-;;                              (emit null *NAME*)))))))))))
-
+(deftest ad-hoc-view-result ()
+  (with-temp-db
+    (create-test-documents *people* :id-field :name)
+    (let ((rows (document-property
+                 :|total_rows|
+                 (ad-hoc-view 
+                  (ps (lambda (*doc*)
+                        (if (= *doc.NAME* "marc")
+                            (emit null *doc.NAME*))))))))
+      (is (= 1 rows))
+      (is (= (length (contains-property *people* :name :pval "marc")))))))
+ 
 ;; Create an ad-hock view that should return no results
 (deftest ad-hoc-view-no-result ()
   (with-temp-db
