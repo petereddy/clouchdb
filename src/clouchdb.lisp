@@ -852,54 +852,23 @@ be created automatically, as of CouchDb version 0.11."
     (db-request (cat "_session")
                 :method :delete)))
 
-;;
-;; _config API
-;;
-
-(defun get-config (&key (db *couchdb*) section)
+(defun get-config (&key (db *couchdb*) section (option nil option-provided-p))
   "Get database configuration."
   (let ((*couchdb* db))
-    (db-request (cat "_config" (if section (cat "/" section)))
-                :method :get)))
-
-(defun set-config (section value &key (db *couchdb*))
-  "Set database configuration value."
-  (let ((*couchdb* db))
-    (db-request (cat "_config" "/" section)
-                :method :put
-                :content (document-to-json value))))
-
-;; (defun get-config (key)
-;;   ""
-;;   (multiple-value-bind (res status)
-;;       (db-request (cat "_config/" key) :method :get
-;;                   :basic-authorization (make-db-auth *couchdb*))
-;;     (cond ((eq 200 status)
-;;            res)
-;;           ((equal "unauthorized" (document-property :|error| res))
-;;            (error 'authorization-error
-;;                   :text (document-property :|reason| res)
-;;                   :result res
-;;                   :db *couchdb*
-;;                   :uri (make-uri (db-name *couchdb*))))
-;;           (t res))))
-  
-
-;; (defun put-config (key value)
-;;   ""
-;;   (multiple-value-bind (res status)
-;;       (db-request (cat "_config/" key) :method :put
-;;                   :content value
-;;                   :basic-authorization (make-db-auth *couchdb*))
-;;     (cond ((eq 200 status)
-;;            res)
-;;           ((equal "unauthorized" (document-property :|error| res))
-;;            (error 'authorization-error
-;;                   :text (document-property :|reason| res)
-;;                   :result res
-;;                   :db *couchdb*
-;;                   :uri (make-uri (db-name *couchdb*))))
-;;           (t res))))
+    (multiple-value-bind (res status)
+        (db-request (cat "_config" 
+                         (if section (cat "/" (as-field-name-string section))))
+                    :method :get
+                    :basic-authorization (make-db-auth *couchdb*))
+      (cond ((eq 200 status)
+             (if option-provided-p (document-property option res) res))
+            ((equal "unauthorized" (document-property :|error| res))
+             (error 'authorization-error
+                    :text (document-property :|reason| res)
+                    :result res
+                    :db *couchdb*
+                    :uri (make-uri (db-name *couchdb*))))
+            (t res)))))
 
 ;;
 ;; CouchDB Document Management API

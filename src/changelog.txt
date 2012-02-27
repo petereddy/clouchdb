@@ -1,4 +1,8 @@
 
+0.0.16:
+  - get-config now handles authentication errors
+  
+
 0.0.15:
   - Fixes and changes to support CouchDb v1.1.1
   - Moved to the Stefil test framework
