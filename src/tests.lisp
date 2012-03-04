@@ -901,18 +901,19 @@ key."
 
 ;; test abilty to get document merge conflicts
 (deftest db-replicate-doc-conflict ()
-  (let ((db1 *couchdb*))
-    (with-temp-db
-      (create-document '((name . "foo")) :id "x")
-      (replicate db1)
-      (put-document (set-document-property 
-                     (get-document "x") :name "bar"))
-      (let ((*couchdb* db1))
+  (with-temp-db
+    (let ((db1 *couchdb*))
+      (with-temp-db
+        (create-document '((name . "foo")) :id "x")
+        (replicate db1)
         (put-document (set-document-property 
-                       (get-document "x") :name "baz")))
-      (replicate db1)
-      (replicate *couchdb* :source db1)
-      (is (document-property :|_conflicts| (get-document "x" :conflicts t))))))
+                       (get-document "x") :name "bar"))
+        (let ((*couchdb* db1))
+          (put-document (set-document-property 
+                         (get-document "x") :name "baz")))
+        (replicate db1)
+        (replicate *couchdb* :source db1)
+        (is (document-property :|_conflicts| (get-document "x" :conflicts t)))))))
 
 ;;
 ;; View API Tests

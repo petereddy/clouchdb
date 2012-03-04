@@ -1459,7 +1459,7 @@ inconsistency."
                 :parameters (transform-params options *view-options*))))
 
 (defun view-util (cmd)
-  "Compact named view"
+  "General function called by view functions"
   (multiple-value-bind (res status)
       (db-request (cat (db-name *couchdb*) cmd)
                   :method :post)
