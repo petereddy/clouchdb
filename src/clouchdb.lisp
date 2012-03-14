@@ -57,7 +57,7 @@
   `(defconstant ,name (if (boundp ',name) (symbol-value ',name) ,value)
      ,@(when doc (list doc))))
 
-(define-constant +utf-8+ (make-external-format :utf-8 :eol-style :lf)
+(define-constant +utf-8+ (flexi-streams:make-external-format :utf-8 :eol-style :lf)
   "Default external format for document content.")
 
 (defun document-update-notify (fn doc)
@@ -276,7 +276,8 @@ list are skipped, and no delimiter is output."
 (defun convert-encoding (string encoding)
   "Convert string to specified encoding. This may be totally wrong and
 probably way too inefficient, but it seems to work."
-  (octets-to-string (string-to-octets string :external-format encoding)))
+  (flexi-streams:octets-to-string 
+   (flexi-streams:string-to-octets string :external-format encoding)))
 
 (defun url-encode (string &key (external-format +utf-8+))
   "URL-encode a string."
@@ -1290,7 +1291,7 @@ created with that name."
                                         :element-type 'octet
                                         :if-does-not-exist if-does-not-exist
                                         :if-exists if-exists)
-                  (let ((out (make-flexi-stream output)))
+                  (let ((out (flexi-streams:make-flexi-stream output)))
                     (loop for line = (read-line in nil nil)
                        while line
                        do (write-line line out))))
