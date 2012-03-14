@@ -25,7 +25,8 @@
 (cl:in-package :cl-user)
 
 (defpackage :clouchdb
-  (:use :cl :drakma :flexi-streams :s-base64 :parenscript)
+  (:use :cl :flexi-streams :s-base64 :parenscript)
+  (:import-from :drakma :http-request)
   (:export 
    :*couchdb*
    :ad-hoc-view
