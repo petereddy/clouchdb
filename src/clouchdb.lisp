@@ -279,18 +279,9 @@ probably way too inefficient, but it seems to work."
   (flexi-streams:octets-to-string 
    (flexi-streams:string-to-octets string :external-format encoding)))
 
-(defun url-encode (string &key (external-format +utf-8+))
-  "URL-encode a string."
-  (with-output-to-string (s)
-    (loop for c across (convert-encoding string external-format)
-          do (cond ((or (char<= #\0 c #\9)
-                        (char<= #\a c #\z)
-                        (char<= #\A c #\Z)
-                        (find c "$-_.!*'()," :test #'char=))
-                     (write-char c s))
-                   ((char= c #\Space)
-                     (write-string "%20" s))
-                   (t (format s "%~2,'0x" (char-code c)))))))
+(defmacro url-encode (string)
+  "URL-encode a string. Use drakma's url-encode since it's exported now"
+  `(drakma:url-encode ,string +utf-8+))
 
 (defun couchdb-host-url (db)
   (cat (db-protocol db) "://" (db-host db) ":" (db-port db)))
@@ -554,8 +545,8 @@ document or null."
 
 (defun db-request (uri &rest args &key &allow-other-keys)
   "Used by most Clouchdb APIs to make the actual REST request."
-  (let ((*text-content-types* *text-types*))
-    (multiple-value-bind (body status headers uri stream must-close reason-phrase)
+  (let ((drakma:*text-content-types* *text-types*))
+    (multiple-value-bind (body status headers ouri stream must-close reason-phrase)
         (apply #'drakma:http-request (make-uri uri)
                `(,@args :basic-authorization
                         ,(when (db-user *couchdb*)
