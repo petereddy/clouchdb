@@ -30,6 +30,8 @@
    :*couchdb*
    :ad-hoc-view
    :add-attachment
+   :add-shows-fns 
+   :add-lists-fns
    :all-docs-by-seq
    :as-deleted-document
    :as-field-name-string
@@ -93,6 +95,7 @@
    :make-db
    :post-document
    :ps-view
+   :defpsfun
    :put-document
    :query-document
    :replicate
