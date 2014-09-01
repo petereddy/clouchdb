@@ -1329,7 +1329,8 @@ closed after execution of the statements in the body."
                 :parameters (transform-params options *view-options*)
 		:content 
                 (cat "{\"language\" : \"" language "\"," 
-                     "\"map\" : \"" view "\"}"))))
+                     "\"map\" : \"" (remove #\Newline view)
+                     "\"}"))))
 
 (defun create-view (id view &key (language "javascript"))
   "Create one or more views in the specified view document ID."
