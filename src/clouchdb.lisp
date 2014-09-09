@@ -594,7 +594,7 @@ a string or number. As of CouchDb version 7.2 the default port is
 information.."
   (declare (ignore host port name protocol user password document-update-fn
                    document-fetch-fn db))
-  `(let ((*couchdb* (apply #'make-db (quote ,args))))
+  `(let ((*couchdb* (make-db ,@args)))
      (progn ,@body)))
 
 (defun document-properties (document)
@@ -1329,7 +1329,8 @@ closed after execution of the statements in the body."
                 :parameters (transform-params options *view-options*)
 		:content 
                 (cat "{\"language\" : \"" language "\"," 
-                     "\"map\" : \"" view "\"}"))))
+                     "\"map\" : \"" (remove #\Newline view)
+                     "\"}"))))
 
 (defun create-view (id view &key (language "javascript"))
   "Create one or more views in the specified view document ID."
@@ -1344,7 +1345,8 @@ closed after execution of the statements in the body."
                                     :content-length nil
                                     :content
                                     (cat "{\"language\" : \"" language "\"," 
-                                         "\"views\" : {" view "}}")))))
+                                         "\"views\" : {"
+                                         (remove #\Newline view) "}}")))))
     (when (document-property :|error| res)
       (error (if (equal "conflict" (document-property :|error| res))
                  'id-or-revision-conflict
