@@ -104,4 +104,5 @@
    :set-document-property
    :with-attachment
    :with-connection
-   :with-temp-db))
+   :with-temp-db
+   :*use-pool*))

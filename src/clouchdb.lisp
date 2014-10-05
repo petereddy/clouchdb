@@ -32,6 +32,7 @@
 (defvar *view-function-names* '(map reduce validate-doc-update))
 (defvar *debug-requests* nil)
 (defvar *temp-db-counter* 0 "")
+(defvar *use-pool* nil)
 
 (defstruct (db (:constructor new-db))
   host port name protocol user password
@@ -567,16 +568,20 @@ document or null."
 
 (defun db-request (uri &rest args &key &allow-other-keys)
   "Used by most Clouchdb APIs to make the actual REST request."
-  (let ((drakma:*text-content-types* *text-types*)
-        (connection (pooler:fetch-from (db-connection-pool *couchdb*))))
+  (let* ((drakma:*text-content-types* *text-types*)
+         (want-stream (getf args :want-stream))
+         (connection (and *use-pool*
+                          (not want-stream)
+                          (pooler:fetch-from (db-connection-pool *couchdb*)))))
     (multiple-value-bind (body status headers ouri stream must-close reason-phrase)
         (apply #'drakma:http-request (make-uri uri)
                `(,@args :basic-authorization
                         ,(when (db-user *couchdb*)
                                (list (db-user *couchdb*)
                                      (db-password *couchdb*)))
-                        :stream ,(http-connection-stream connection)
-                        :close nil))
+                        ,@(when connection
+                                (list :stream (http-connection-stream connection)
+                                      :close nil))))
       (declare (ignore ouri))
       (unwind-protect
            (progn
@@ -587,14 +592,15 @@ status: ~s~%headers: ~s~%stream:~s~%body:~s~%"
              (if (stringp body) 
                  (values (json-to-document body) status)
                  (values body status reason-phrase)))
-        (if must-close
-            ;; If the connection must be closed, then we can simply drop the
-            ;; pooled connection.
-            (close stream)
-            ;; ELSE preseve the cached connection and return the object to the pool
-            (progn
-              (setf (http-connection-stream connection) stream)
-              (pooler:return-to (db-connection-pool *couchdb*) connection)))))))
+        (unless want-stream
+          (if must-close
+              ;; If the connection must be closed, then we can simply drop the
+              ;; pooled connection.
+              (close stream)
+              ;; ELSE preseve the cached connection and return the object to the pool
+              (when connection
+                (setf (http-connection-stream connection) stream)
+                (pooler:return-to (db-connection-pool *couchdb*) connection))))))))
 
 (defun make-db (&key host port name protocol 
                   (user nil user-supplied-p) 
