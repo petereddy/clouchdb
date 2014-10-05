@@ -28,6 +28,7 @@
   (:use :cl :parenscript)
   (:export 
    :*couchdb*
+   :*use-pool*
    :ad-hoc-view
    :add-attachment
    :add-shows-fns 
@@ -104,5 +105,4 @@
    :set-document-property
    :with-attachment
    :with-connection
-   :with-temp-db
-   :*use-pool*))
+   :with-temp-db))
