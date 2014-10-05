@@ -47,7 +47,6 @@
 
 (defun close-http-connection (connection)
   (let ((stream (http-connection-stream connection)))
-    (log:info "closing, stream=~s" stream)
     (when stream
       (handler-case
           (close stream)
@@ -570,8 +569,6 @@ document or null."
   "Used by most Clouchdb APIs to make the actual REST request."
   (let ((drakma:*text-content-types* *text-types*)
         (connection (pooler:fetch-from (db-connection-pool *couchdb*))))
-    (unless (http-connection-stream connection)
-      (log:info "Creating new connection"))
     (multiple-value-bind (body status headers ouri stream must-close reason-phrase)
         (apply #'drakma:http-request (make-uri uri)
                `(,@args :basic-authorization
@@ -590,7 +587,6 @@ status: ~s~%headers: ~s~%stream:~s~%body:~s~%"
              (if (stringp body) 
                  (values (json-to-document body) status)
                  (values body status reason-phrase)))
-        ;(log:info "must-close=~s" must-close)
         (if must-close
             ;; If the connection must be closed, then we can simply drop the
             ;; pooled connection.
