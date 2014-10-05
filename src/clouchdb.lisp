@@ -602,7 +602,6 @@ status: ~s~%headers: ~s~%stream:~s~%body:~s~%"
                   document-fetch-fn document-update-fn 
                   (db *couchdb*)
                   (pool-capacity 20))
-
   "Create, populate and return a database structure from the current
 special variables and any supplied keyword parameters, the latter take
 precedence over the special variables."
