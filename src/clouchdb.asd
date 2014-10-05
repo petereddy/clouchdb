@@ -41,7 +41,8 @@
                :drakma
                :parenscript
                :s-base64
-               :flexi-streams)
+               :flexi-streams
+               :pooler)
   :components ((:file "package")
                (:file "clouchdb")
                (:file "decoder")
