@@ -597,7 +597,7 @@ status: ~s~%headers: ~s~%stream:~s~%body:~s~%"
               ;; If the connection must be closed, then we can simply drop the
               ;; pooled connection.
               (close stream)
-              ;; ELSE preseve the cached connection and return the object to the pool
+              ;; ELSE preserve the cached connection and return the object to the pool
               (when connection
                 (setf (http-connection-stream connection) stream)
                 (pooler:return-to (db-connection-pool *couchdb*) connection))))))))
