@@ -28,6 +28,7 @@
   (:use :cl :parenscript)
   (:export 
    :*couchdb*
+   :*use-pool*
    :ad-hoc-view
    :add-attachment
    :add-shows-fns 

@@ -32,16 +32,39 @@
 (defvar *view-function-names* '(map reduce validate-doc-update))
 (defvar *debug-requests* nil)
 (defvar *temp-db-counter* 0 "")
+(defvar *use-pool* nil)
 
 (defstruct (db (:constructor new-db))
   host port name protocol user password
-  document-fetch-fn document-update-fn)
+  document-fetch-fn document-update-fn
+  connection-pool)
+
+(defclass http-connection ()
+  ((stream :type stream
+           :initform nil
+           :accessor http-connection-stream
+           :documentation "If non-nil, this object holds an open connection to the http server."))
+  (:documentation "An instance of a pooled connection to the CouchDB database."))
+
+(defun close-http-connection (connection)
+  (let ((stream (http-connection-stream connection)))
+    (when stream
+      (handler-case
+          (close stream)
+        (error (condition) (warn "Error when closing pooled connection: ~s" condition))))))
+
+(defun make-http-connection-pool (&key (capacity 20))
+  (pooler:make-pool :name "CouchDB http connection pool"
+                    :capacity capacity
+                    :item-maker #'(lambda () (make-instance 'http-connection))
+                    :item-destroyer #'close-http-connection))
 
 (defun make-default-db ()
   (new-db :host *default-host*
           :port *default-port*
           :name *default-db-name*
-          :protocol *default-protocol*))
+          :protocol *default-protocol*
+          :connection-pool (make-http-connection-pool)))
 
 (defvar *couchdb* (make-default-db) "A db struct object")
 
@@ -545,26 +568,46 @@ document or null."
 
 (defun db-request (uri &rest args &key &allow-other-keys)
   "Used by most Clouchdb APIs to make the actual REST request."
-  (let ((drakma:*text-content-types* *text-types*))
+  (let* ((drakma:*text-content-types* *text-types*)
+         (want-stream (getf args :want-stream))
+         (connection (and *use-pool*
+                          (not want-stream)
+                          (pooler:fetch-from (db-connection-pool *couchdb*)))))
     (multiple-value-bind (body status headers ouri stream must-close reason-phrase)
         (apply #'drakma:http-request (make-uri uri)
                `(,@args :basic-authorization
                         ,(when (db-user *couchdb*)
                                (list (db-user *couchdb*)
-                                     (db-password *couchdb*)))))
-      (when *debug-requests*
-        (format t "uri: ~s~%args: ~s~%must-close:~s~%reason-phrase: ~s~%
+                                     (db-password *couchdb*)))
+                        ,@(when connection
+                                (list :stream (http-connection-stream connection)
+                                      :close nil))))
+      (declare (ignore ouri))
+      (unwind-protect
+           (progn
+             (when *debug-requests*
+               (format t "uri: ~s~%args: ~s~%must-close:~s~%reason-phrase: ~s~%
 status: ~s~%headers: ~s~%stream:~s~%body:~s~%" 
-                uri args must-close reason-phrase status headers stream body))
-      (if (stringp body) 
-          (values (json-to-document body) status)
-          (values body status reason-phrase)))))
+                       uri args must-close reason-phrase status headers stream body))
+             (if (stringp body) 
+                 (values (json-to-document body) status)
+                 (values body status reason-phrase)))
+        (unless want-stream
+          (if must-close
+              ;; If the connection must be closed, then we can simply drop the
+              ;; pooled connection.
+              (close stream)
+              ;; ELSE preserve the cached connection and return the object to the pool
+              (when connection
+                (setf (http-connection-stream connection) stream)
+                (pooler:return-to (db-connection-pool *couchdb*) connection))))))))
 
 (defun make-db (&key host port name protocol 
-                (user nil user-supplied-p) 
-                (password nil password-supplied-p)
-                document-fetch-fn document-update-fn 
-                (db *couchdb*))
+                  (user nil user-supplied-p) 
+                  (password nil password-supplied-p)
+                  document-fetch-fn document-update-fn 
+                  (db *couchdb*)
+                  (pool-capacity 20))
   "Create, populate and return a database structure from the current
 special variables and any supplied keyword parameters, the latter take
 precedence over the special variables."
@@ -575,7 +618,8 @@ precedence over the special variables."
           :user (if user-supplied-p user (db-user db))
           :password (if password-supplied-p password (db-password db))
           :document-fetch-fn (or document-fetch-fn (db-document-fetch-fn db))
-          :document-update-fn (or document-update-fn (db-document-update-fn db))))
+          :document-update-fn (or document-update-fn (db-document-update-fn db))
+          :connection-pool (make-http-connection-pool :capacity pool-capacity)))
 
 (defun set-connection (&rest args &key host port name protocol user password 
                        document-fetch-fn document-update-fn db)
@@ -1501,6 +1545,7 @@ already exist in the document, update them."
                                      (url-encode list-id))))
         (format t "uri: ~S~%" url)
         (drakma:http-request url))
+    (declare (ignore status headers uri must-close reason-phrase))
     (when stream
       (close stream))
     body))
