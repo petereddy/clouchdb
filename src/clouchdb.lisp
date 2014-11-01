@@ -548,7 +548,8 @@ document or null."
   (let ((drakma:*text-content-types* *text-types*))
     (multiple-value-bind (body status headers ouri stream must-close reason-phrase)
         (apply #'drakma:http-request (make-uri uri)
-               `(,@args :basic-authorization
+               `(,@args :preserve-uri t
+                        :basic-authorization
                         ,(when (db-user *couchdb*)
                                (list (db-user *couchdb*)
                                      (db-password *couchdb*)))))
