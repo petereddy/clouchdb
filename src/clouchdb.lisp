@@ -543,15 +543,33 @@ document or null."
 ;;
 ;;
 
-(defun db-request (uri &rest args &key &allow-other-keys)
+(defun remove-keyword-from-list (arg-list keyword)
+  (loop
+     for (key value) on arg-list by #'cddr
+     unless (eq key keyword)
+     nconc (list key value)))
+
+(defun format-parameters (parameters)
+  (with-output-to-string (s)
+    (loop
+       for first = t then nil
+       for v in parameters
+       do (format s "~a~a=~a" (if first "?" "&") (url-encode (car v)) (url-encode (cdr v))))))
+
+(defun db-request (uri &rest args &key parameters &allow-other-keys)
   "Used by most Clouchdb APIs to make the actual REST request."
-  (let ((drakma:*text-content-types* *text-types*))
+  (let ((drakma:*text-content-types* *text-types*)
+        (uri (make-uri uri)))
     (multiple-value-bind (body status headers ouri stream must-close reason-phrase)
-        (apply #'drakma:http-request (make-uri uri)
-               `(,@args :basic-authorization
-                        ,(when (db-user *couchdb*)
-                               (list (db-user *couchdb*)
-                                     (db-password *couchdb*)))))
+        (apply #'drakma:http-request (if parameters
+                                         (cat uri (format-parameters parameters))
+                                         uri)
+               `(,@(remove-keyword-from-list args :parameters)
+                   :preserve-uri t
+                   :basic-authorization
+                   ,(when (db-user *couchdb*)
+                          (list (db-user *couchdb*)
+                                (db-password *couchdb*)))))
       (when *debug-requests*
         (format t "uri: ~s~%args: ~s~%must-close:~s~%reason-phrase: ~s~%
 status: ~s~%headers: ~s~%stream:~s~%body:~s~%" 
