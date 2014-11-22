@@ -185,7 +185,7 @@ options, use only those transformations that return a non-nil result."
 (define-condition id-or-revision-conflict (doc-error) 
   ()
   (:report (lambda (condition stream)
-	     (format stream "ID or Revsion Conflict. ID=\"~A\", Reason=~S"
+	     (format stream "ID or Revision Conflict. ID=\"~A\", Reason=~S"
 		     (id condition) (reason condition)))))
 
 (define-condition id-missing (doc-error)
